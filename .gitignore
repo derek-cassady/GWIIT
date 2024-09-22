@@ -198,3 +198,6 @@ staticfiles/
 # Ignore coverage reports
 .coverage
 coverage/
+
+# Ignore Planning Documents folder
+/planning_docs/

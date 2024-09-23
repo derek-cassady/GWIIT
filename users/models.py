@@ -13,6 +13,90 @@ MFA_CHOICES = [
     ('static_otp', 'Static OTP'),
 ]
 
+class UserManager(models.Manager):
+    # Returns all active users
+    def active(self):
+        return self.filter(is_active=True)
+
+    # Returns all inactive users
+    def inactive(self):
+        return self.filter(is_active=False)
+
+    # Returns all users from site
+    def from_site(self, site):
+        return self.filter(site=site)
+
+    # Returns all users from organization
+    def from_organization(self, organization):
+        return self.filter(organization=organization)
+
+    # Returns all active users from site
+    def active_from_site(self, site):
+        return self.filter(is_active=True, site=site)
+
+    # Returns all inactive users from site
+    def inactive_from_site(self, site):
+        return self.filter(is_active=False, site=site)
+
+    # Returns all active users from organization
+    def active_from_organization(self, organization):
+        return self.filter(is_active=True, organization=organization)    
+
+    # Returns all inactive users from organization
+    def inactive_from_organization(self, organization):
+        return self.filter(is_active=False, organization=organization) 
+    
+    # Users without MFA setup
+    def without_mfa(self):
+        return self.filter(mfa_preference='none')
+
+    # Users using Google Authenticator MFA
+    def with_google_authenticator(self):
+        return self.filter(mfa_preference='google_authenticator')
+
+    # Users using SMS MFA
+    def with_sms(self):
+        return self.filter(mfa_preference='sms')
+
+    # Users using Email MFA
+    def with_email_mfa(self):
+        return self.filter(mfa_preference='email')
+
+    # Users by 'badge_barcode'
+    def by_badge_barcode(self, barcode):
+        return self.filter(badge_barcode=barcode)
+
+    # Users by 'badge_rfid'
+    def by_badge_rfid(self, rfid):
+        return self.filter(badge_rfid=rfid)
+    
+    # Returns all staff users
+    def staff(self):
+        return self.filter(is_staff=True)
+
+    # Returns all staff users from site
+    def staff_from_site(self, site):
+        return self.filter(is_staff=True, site=site)
+        
+    # Returns all staff users from organization
+    def staff_from_organization(self, organization):
+        return self.filter(is_staff=True, organization=organization)
+
+    # Returns all users created in last 30 days
+    def recently_joined(self):
+        last_30_days = timezone.now() - timezone.timedelta(days=30)
+        return self.filter(date_joined__gte=last_30_days)
+
+    # Returns all users created in last 30 days from site
+    def recently_joined_from_site(self, site):
+        last_30_days = timezone.now() - timezone.timedelta(days=30)
+        return self.filter(date_joined__gte=last_30_days, site=site)     
+
+    # Returns all users created in last 30 days from organization
+    def recently_joined_from_organization(self, organization):
+        last_30_days = timezone.now() - timezone.timedelta(days=30)
+        return self.filter(date_joined__gte=last_30_days, organization=organization)
+
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=30, unique=True, null=True, blank=True)
@@ -35,6 +119,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_modified = models.DateTimeField(auto_now=True)
     modified_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='modified_users')
 
+    objects = UserManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']

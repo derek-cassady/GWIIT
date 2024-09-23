@@ -16,3 +16,14 @@ class Organization(models.Model):
 
     def __str__(self):
         return self.name
+    
+class Contact(models.Model):
+    organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True, blank=True, related_name='contacts')
+    name = models.CharField(max_length=255)
+    email = models.EmailField(null=True, blank=True)
+    phone_number = models.CharField(max_length=20, null=True, blank=True)
+    address = models.CharField(max_length=255, null=True, blank=True)
+    role = models.CharField(max_length=100, null=True, blank=True)  # Role in the organization (e.g., CEO, Manager)
+
+    def __str__(self):
+        return f"{self.name} ({self.organization.name if self.organization else 'No Organization'})"    

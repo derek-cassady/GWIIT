@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'users', #custom user model app
+    'organizations', #custom organizations model app
 ]
 
 MIDDLEWARE = [

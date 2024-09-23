@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.utils import timezone
+from organizations.models import Organization
+from sites.models import Site
 
 MFA_CHOICES = [
     ('none', 'None'),

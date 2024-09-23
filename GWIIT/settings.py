@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users', #custom user model app
     'organizations', #custom organizations model app
+    'sites', #custom organizations model app
 ]
 
 MIDDLEWARE = [

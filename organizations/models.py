@@ -37,6 +37,23 @@ class Organization(models.Model):
     def __str__(self):
         return self.name
     
+class ContactManager(models.Manager):
+    # Returns all contacts from a specific organization
+    def from_organization(self, organization):
+        return self.filter(organization=organization)
+
+    # Returns all contacts with a specific role
+    def with_role(self, role):
+        return self.filter(role=role)
+
+    # Returns all contacts created by a specific user
+    def created_by_user(self, user):
+        return self.filter(created_by=user)
+
+    # Returns all contacts modified by a specific user
+    def modified_by_user(self, user):
+        return self.filter(modified_by=user)
+
 class Contact(models.Model):
     organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True, blank=True, related_name='contacts')
     name = models.CharField(max_length=255)
@@ -50,6 +67,8 @@ class Contact(models.Model):
     created_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='created_organization_contacts')
     last_modified = models.DateTimeField(auto_now=True)
     modified_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='modified_organization_contacts')
+
+    objects = ContactManager()
 
     def __str__(self):
         return f"{self.name} ({self.organization.name if self.organization else 'No Organization'})"    

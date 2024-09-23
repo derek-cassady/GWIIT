@@ -22,7 +22,7 @@ class Site(models.Model):
         return self.name
     
 class Contact(models.Model):
-    site = models.ForeignKey(Site, on_delete=models.CASCADE, related_name='contacts')
+    site = models.ForeignKey('Site', on_delete=models.SET_NULL, null=True, blank=True, related_name='contacts')
     name = models.CharField(max_length=255)
     email = models.EmailField(null=True, blank=True)
     phone_number = models.CharField(max_length=20, null=True, blank=True)
@@ -36,4 +36,4 @@ class Contact(models.Model):
     modified_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='modified_site_contacts')
 
     def __str__(self):
-        return f"{self.name} ({self.site.name})"
+        return f"{self.name} ({self.site.name if self.site else 'No Site'})"

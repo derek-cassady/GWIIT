@@ -20,3 +20,14 @@ class Site(models.Model):
 
     def __str__(self):
         return self.name
+    
+class Contact(models.Model):
+    site = models.ForeignKey(Site, on_delete=models.CASCADE, related_name='contacts')
+    name = models.CharField(max_length=255)
+    email = models.EmailField(null=True, blank=True)
+    phone_number = models.CharField(max_length=20, null=True, blank=True)
+    address = models.CharField(max_length=255, null=True, blank=True)
+    role = models.CharField(max_length=100, null=True, blank=True)  # Role in the site (e.g., Manager)
+
+    def __str__(self):
+        return f"{self.name} ({self.site.name})"

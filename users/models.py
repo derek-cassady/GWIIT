@@ -15,8 +15,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=30, unique=True, null=True, blank=True)
     badge_barcode = models.CharField(max_length=100, unique=True, null=True, blank=True)
     badge_rfid = models.CharField(max_length=100, unique=True, null=True, blank=True)
-    organization = models.ForeignKey('Organization', on_delete=models.SET_NULL, null=True, blank=True)
-    site = models.ForeignKey('Site', on_delete=models.SET_NULL, null=True, blank=True)
+    organization = models.ForeignKey('Organization', on_delete=models.SET_NULL, null=True, blank=True, related_name='users')
+    site = models.ForeignKey('Site', on_delete=models.SET_NULL, null=True, blank=True, related_name='users')
     phone_number = models.CharField(max_length=15, null=True, blank=True)
     mfa_preference = models.CharField(max_length=50, choices=MFA_CHOICES, default='none')
     mfa_secret = models.CharField(max_length=100, null=True, blank=True)  # For Google Authenticator

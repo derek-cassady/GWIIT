@@ -25,5 +25,11 @@ class Contact(models.Model):
     address = models.CharField(max_length=255, null=True, blank=True)
     role = models.CharField(max_length=100, null=True, blank=True)  # Role in the organization (e.g., CEO, Manager)
 
+    # Tracking fields
+    date_created = models.DateTimeField(default=timezone.now)
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='created_organization_contacts')
+    last_modified = models.DateTimeField(auto_now=True)
+    modified_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='modified_organization_contacts')
+
     def __str__(self):
         return f"{self.name} ({self.organization.name if self.organization else 'No Organization'})"    

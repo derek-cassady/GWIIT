@@ -75,8 +75,12 @@ WSGI_APPLICATION = 'GWIIT.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'gwiit_auth',  
+        'USER': 'postgres',
+        'PASSWORD': 'Burp33B33t',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 

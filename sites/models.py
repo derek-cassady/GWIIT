@@ -29,5 +29,11 @@ class Contact(models.Model):
     address = models.CharField(max_length=255, null=True, blank=True)
     role = models.CharField(max_length=100, null=True, blank=True)  # Role in the site (e.g., Manager)
 
+    # Tracking fields
+    date_created = models.DateTimeField(default=timezone.now)
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='created_site_contacts')
+    last_modified = models.DateTimeField(auto_now=True)
+    modified_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='modified_site_contacts')
+
     def __str__(self):
         return f"{self.name} ({self.site.name})"

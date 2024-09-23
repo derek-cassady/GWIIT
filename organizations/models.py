@@ -2,6 +2,24 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
+class OrganizationManager(models.Manager):
+    
+    # Returns all active organizations
+    def active(self):
+        return self.filter(active=True)
+
+    # Returns all inactive organizations
+    def inactive(self):
+        return self.filter(active=False)
+
+    # Returns all organizations created by a specific user
+    def created_by_user(self, user):
+        return self.filter(created_by=user)
+
+    # Returns all organizations modified by a specific user
+    def modified_by_user(self, user):
+        return self.filter(modified_by=user)
+
 class Organization(models.Model):
     # Extensible fields    
     name = models.CharField(max_length=255, unique=True)
@@ -13,6 +31,8 @@ class Organization(models.Model):
     created_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='created_organizations', null=True, blank=True)  # Reference to User model
     last_modified = models.DateTimeField(auto_now=True)
     modified_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='modified_organizations', null=True, blank=True)  # Reference to User model
+
+    objects = OrganizationManager()
 
     def __str__(self):
         return self.name

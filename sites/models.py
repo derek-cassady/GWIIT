@@ -3,12 +3,45 @@ from organizations.models import Organization
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
+class SiteManager(models.Manager):
+    # Returns all active sites
+    def active(self):
+        return self.filter(active=True)
+
+    # Returns all inactive sites
+    def inactive(self):
+        return self.filter(active=False)
+
+    # Returns all sites belonging to a specific organization
+    def from_organization(self, organization):
+        return self.filter(organization=organization)
+
+    # Returns all active sites from a specific organization
+    def active_from_organization(self, organization):
+        return self.filter(active=True, organization=organization)
+    
+    # Returns all inactive sites from a specific organization
+    def inactive_from_organization(self, organization):
+        return self.filter(active=False, organization=organization)
+
+    # Returns all sites of a type
+    def of_type(self, site_type):
+        return self.filter(type=site_type)
+
+    # Returns all sites created by a user
+    def created_by_user(self, user):
+        return self.filter(created_by=user)
+
+    # Returns all sites modified by a user
+    def modified_by_user(self, user):
+        return self.filter(modified_by=user)
+
 class Site(models.Model):
     name = models.CharField(max_length=255)
     organization = models.ForeignKey(Organization, on_delete=models.PROTECT, related_name='sites')  # Reference to Organization
     
     # Extensible fields
-    type = models.CharField(max_length=100, null=True, blank=True)  # Site type (e.g., Warehouse, Office, Clinic)
+    site_type = models.CharField(max_length=100, null=True, blank=True)  # Site type (e.g., Warehouse, Office, Clinic)
     address = models.CharField(max_length=255, null=True, blank=True)
     active = models.BooleanField(default=True)
     
@@ -20,7 +53,9 @@ class Site(models.Model):
 
     def __str__(self):
         return self.name
-    
+
+    objects = SiteManager()
+
 class Contact(models.Model):
     site = models.ForeignKey('Site', on_delete=models.SET_NULL, null=True, blank=True, related_name='contacts')
     name = models.CharField(max_length=255)

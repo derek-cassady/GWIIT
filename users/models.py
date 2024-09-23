@@ -3,6 +3,7 @@ from django.db import models
 from django.utils import timezone
 from organizations.models import Organization
 from sites.models import Site
+from django.contrib.auth import get_user_model
 
 MFA_CHOICES = [
     ('none', 'None'),
@@ -25,8 +26,15 @@ class User(AbstractBaseUser, PermissionsMixin):
     static_otp = models.TextField(null=True, blank=True)  # Comma-separated static OTPs
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
-    date_joined = models.DateTimeField(default=timezone.now)
     last_login = models.DateTimeField(null=True, blank=True)
+
+    # Tracking fields
+    date_joined = models.DateTimeField(default=timezone.now)
+    date_created = models.DateTimeField(default=timezone.now)
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='created_users')
+    last_modified = models.DateTimeField(auto_now=True)
+    modified_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='modified_users')
+
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']

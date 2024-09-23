@@ -56,6 +56,27 @@ class Site(models.Model):
 
     objects = SiteManager()
 
+class ContactManager(models.Manager):
+    # Returns all contacts from a specific site
+    def from_site(self, site):
+        return self.filter(site=site)
+
+    # Returns all contacts with a specific role
+    def with_role(self, role):
+        return self.filter(role=role)
+
+    # Returns all contacts created by a specific user
+    def created_by_user(self, user):
+        return self.filter(created_by=user)
+
+    # Returns all contacts modified by a specific user
+    def modified_by_user(self, user):
+        return self.filter(modified_by=user)
+    
+    # Returns all contacts with a specific phone number
+    def with_phone_number(self, phone_number):
+        return self.filter(phone_number=phone_number)
+
 class Contact(models.Model):
     site = models.ForeignKey('Site', on_delete=models.SET_NULL, null=True, blank=True, related_name='contacts')
     name = models.CharField(max_length=255)
@@ -69,6 +90,8 @@ class Contact(models.Model):
     created_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='created_site_contacts')
     last_modified = models.DateTimeField(auto_now=True)
     modified_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='modified_site_contacts')
+
+    objects = ContactManager()
 
     def __str__(self):
         return f"{self.name} ({self.site.name if self.site else 'No Site'})"

@@ -37,19 +37,19 @@ class SiteManager(models.Manager):
         return self.filter(modified_by=user)
 
 class Site(models.Model):
-    name = models.CharField(max_length=255, db_index=True)
-    organization = models.ForeignKey(Organization, on_delete=models.PROTECT, related_name='sites')  # Reference to Organization
+    name = models.CharField(max_length=255, db_index=True, verbose_name='Site Name')
+    organization = models.ForeignKey(Organization, on_delete=models.PROTECT, related_name='sites', verbose_name='Organization Name')  # Reference to Organization
     
     # Extensible fields
-    site_type = models.CharField(max_length=100, null=True, blank=True)  # Site type (e.g., Warehouse, Office, Clinic)
-    address = models.CharField(max_length=255, null=True, blank=True)
-    active = models.BooleanField(default=True)
+    site_type = models.CharField(max_length=100, null=True, blank=True, verbose_name='Site Type')  # Site type (e.g., Warehouse, Office, Clinic)
+    address = models.CharField(max_length=255, null=True, blank=True, verbose_name='Site Address')
+    active = models.BooleanField(default=True, verbose_name='Site Active')
     
     # Tracking fields
-    date_created = models.DateTimeField(default=timezone.now)
-    created_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='created_sites')
-    last_modified = models.DateTimeField(auto_now=True)
-    modified_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='modified_sites')
+    date_created = models.DateTimeField(default=timezone.now, verbose_name='Date Created')
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='created_sites', verbose_name='Created By')
+    last_modified = models.DateTimeField(auto_now=True, verbose_name='Last Modified')
+    modified_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='modified_sites', verbose_name='Modified By')
 
     class Meta:
         # Singular for 'Site' model

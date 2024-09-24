@@ -21,6 +21,21 @@ class UserManager(models.Manager):
     # Returns all inactive users
     def inactive(self):
         return self.filter(is_active=False)
+    
+    # Returns users by first name
+    def by_first_name(self, first_name):
+        # Case-insensitive search
+        return self.filter(first_name__icontains=first_name)
+    
+    # Returns users by last name
+    def by_last_name(self, last_name):
+        # Case-insensitive search
+        return self.filter(last_name__icontains=last_name)
+    
+    # Returns users by both first and last name
+    def by_full_name(self, first_name, last_name):
+        # Case-insensitive search
+        return self.filter(first_name__icontains=first_name, last_name__icontains=last_name)
 
     # Returns all users from site
     def from_site(self, site):

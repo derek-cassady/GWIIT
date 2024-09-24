@@ -37,7 +37,7 @@ class SiteManager(models.Manager):
         return self.filter(modified_by=user)
 
 class Site(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, db_index=True)
     organization = models.ForeignKey(Organization, on_delete=models.PROTECT, related_name='sites')  # Reference to Organization
     
     # Extensible fields

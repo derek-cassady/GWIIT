@@ -98,10 +98,10 @@ class UserManager(models.Manager):
         return self.filter(date_joined__gte=last_30_days, organization=organization)
 
 class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(unique=True)
-    username = models.CharField(max_length=30, unique=True, null=True, blank=True)
-    badge_barcode = models.CharField(max_length=100, unique=True, null=True, blank=True)
-    badge_rfid = models.CharField(max_length=100, unique=True, null=True, blank=True)
+    email = models.EmailField(unique=True, db_index=True)
+    username = models.CharField(max_length=30, unique=True, null=True, blank=True, db_index=True)
+    badge_barcode = models.CharField(max_length=100, unique=True, null=True, blank=True, db_index=True)
+    badge_rfid = models.CharField(max_length=100, unique=True, null=True, blank=True, db_index=True)
     organization = models.ForeignKey('Organization', on_delete=models.SET_NULL, null=True, blank=True, related_name='users')
     site = models.ForeignKey('Site', on_delete=models.SET_NULL, null=True, blank=True, related_name='users')
     phone_number = models.CharField(max_length=15, null=True, blank=True)

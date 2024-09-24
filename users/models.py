@@ -113,28 +113,28 @@ class UserManager(models.Manager):
         return self.filter(date_joined__gte=last_30_days, organization=organization)
 
 class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(unique=True, db_index=True)
-    username = models.CharField(max_length=30, unique=True, null=True, blank=True, db_index=True)
-    first_name = models.CharField(max_length=30, null=True, blank=True, db_index=True)
-    last_name = models.CharField(max_length=30, null=True, blank=True, db_index=True)
-    badge_barcode = models.CharField(max_length=100, unique=True, null=True, blank=True, db_index=True)
-    badge_rfid = models.CharField(max_length=100, unique=True, null=True, blank=True, db_index=True)
-    organization = models.ForeignKey('Organization', on_delete=models.SET_NULL, null=True, blank=True, related_name='users')
-    site = models.ForeignKey('Site', on_delete=models.SET_NULL, null=True, blank=True, related_name='users')
-    phone_number = models.CharField(max_length=15, null=True, blank=True)
-    mfa_preference = models.CharField(max_length=50, choices=MFA_CHOICES, default='none')
-    mfa_secret = models.CharField(max_length=100, null=True, blank=True)  # For Google Authenticator
-    static_otp = models.TextField(null=True, blank=True)  # Comma-separated static OTPs
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
-    last_login = models.DateTimeField(null=True, blank=True)
+    email = models.EmailField(unique=True, db_index=True, verbose_name='Email Address')
+    username = models.CharField(max_length=30, unique=True, null=True, blank=True, db_index=True, verbose_name='Username')
+    first_name = models.CharField(max_length=30, null=True, blank=True, db_index=True, verbose_name='First Name')
+    last_name = models.CharField(max_length=30, null=True, blank=True, db_index=True, verbose_name='Last Name')
+    badge_barcode = models.CharField(max_length=100, unique=True, null=True, blank=True, db_index=True, verbose_name='Badge Barcode')
+    badge_rfid = models.CharField(max_length=100, unique=True, null=True, blank=True, db_index=True, verbose_name='Badge RFID')
+    organization = models.ForeignKey('Organization', on_delete=models.SET_NULL, null=True, blank=True, related_name='users', verbose_name='Organization Name')
+    site = models.ForeignKey('Site', on_delete=models.SET_NULL, null=True, blank=True, related_name='users', verbose_name='Site Name')
+    phone_number = models.CharField(max_length=15, null=True, blank=True, verbose_name='Phone Number')
+    mfa_preference = models.CharField(max_length=50, choices=MFA_CHOICES, default='none', verbose_name='MFA Preference')
+    mfa_secret = models.CharField(max_length=100, null=True, blank=True, verbose_name='MFA Secret')  # For Google Authenticator
+    static_otp = models.TextField(null=True, blank=True, verbose_name='Static OTP')  # Comma-separated static OTPs
+    is_active = models.BooleanField(default=True, verbose_name='Is Active')
+    is_staff = models.BooleanField(default=False, verbose_name='Is Staff')
+    last_login = models.DateTimeField(null=True, blank=True, verbose_name='Last Login')
 
     # Tracking fields
-    date_joined = models.DateTimeField(default=timezone.now)
-    date_created = models.DateTimeField(default=timezone.now)
-    created_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='created_users')
-    last_modified = models.DateTimeField(auto_now=True)
-    modified_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='modified_users')
+    date_joined = models.DateTimeField(default=timezone.now, verbose_name='Date Joined')
+    date_created = models.DateTimeField(default=timezone.now, verbose_name='Date Created')
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='created_users', verbose_name='Created By')
+    last_modified = models.DateTimeField(auto_now=True, verbose_name='Last Modified')
+    modified_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='modified_users', verbose_name='Modified By')
 
     objects = UserManager()
 

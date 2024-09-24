@@ -143,6 +143,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     class Meta:
         ordering = ['email', 'username', 'first_name', 'last_name', 'badge_barcode', 'badge_rfid']
+        # Singular for 'User' model
+        verbose_name = 'User'
+        # Plural for 'User' model
+        verbose_name_plural = 'Users'
 
     # Property for the full name
     @property

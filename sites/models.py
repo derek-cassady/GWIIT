@@ -84,19 +84,19 @@ class ContactManager(models.Manager):
         return self.filter(phone_number=phone_number)
 
 class Contact(models.Model):
-    site = models.ForeignKey('Site', on_delete=models.SET_NULL, null=True, blank=True, related_name='contacts')
-    first_name = models.CharField(max_length=30, null=True, blank=True)
-    last_name = models.CharField(max_length=30, null=True, blank=True)
-    email = models.EmailField(null=True, blank=True, db_index=True)
-    phone_number = models.CharField(max_length=20, null=True, blank=True)
-    address = models.CharField(max_length=255, null=True, blank=True)
-    role = models.CharField(max_length=100, null=True, blank=True)  # Role in the site (e.g., Manager)
+    site = models.ForeignKey('Site', on_delete=models.SET_NULL, null=True, blank=True, related_name='contacts', verbose_name='Site Name')
+    first_name = models.CharField(max_length=30, null=True, blank=True, verbose_name='First Name')
+    last_name = models.CharField(max_length=30, null=True, blank=True, verbose_name='Last Name')
+    email = models.EmailField(null=True, blank=True, db_index=True, verbose_name='Email Address')
+    phone_number = models.CharField(max_length=20, null=True, blank=True, verbose_name='Phone Number')
+    address = models.CharField(max_length=255, null=True, blank=True, verbose_name='Site Mailing Address')
+    role = models.CharField(max_length=100, null=True, blank=True, verbose_name='Role')  # Role in the site (e.g., Manager)
 
     # Tracking fields
-    date_created = models.DateTimeField(default=timezone.now)
-    created_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='created_site_contacts')
-    last_modified = models.DateTimeField(auto_now=True)
-    modified_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='modified_site_contacts')
+    date_created = models.DateTimeField(default=timezone.now, verbose_name='Date Created')
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='created_site_contacts', verbose_name='Created By')
+    last_modified = models.DateTimeField(auto_now=True, verbose_name='Last Modified')
+    modified_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='modified_site_contacts', verbose_name='Modified By')
 
     objects = ContactManager()
 

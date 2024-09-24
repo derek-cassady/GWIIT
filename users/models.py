@@ -100,6 +100,8 @@ class UserManager(models.Manager):
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True, db_index=True)
     username = models.CharField(max_length=30, unique=True, null=True, blank=True, db_index=True)
+    first_name = models.CharField(max_length=30, null=True, blank=True, db_index=True)
+    last_name = models.CharField(max_length=30, null=True, blank=True, db_index=True)
     badge_barcode = models.CharField(max_length=100, unique=True, null=True, blank=True, db_index=True)
     badge_rfid = models.CharField(max_length=100, unique=True, null=True, blank=True, db_index=True)
     organization = models.ForeignKey('Organization', on_delete=models.SET_NULL, null=True, blank=True, related_name='users')
@@ -123,6 +125,11 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
+
+    # Property for the full name
+    @property
+    def name(self):
+        return f"{self.first_name} {self.last_name}".strip()
 
     def __str__(self):
         organization_name = self.organization.name if self.organization else 'No Organization'

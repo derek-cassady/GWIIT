@@ -51,6 +51,12 @@ class Site(models.Model):
     last_modified = models.DateTimeField(auto_now=True)
     modified_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='modified_sites')
 
+    class Meta:
+        # Singular for 'Site' model
+        verbose_name = 'Site'
+        # Plural for 'Site' model
+        verbose_name_plural = 'Sites'
+
     def __str__(self):
         return self.name
 

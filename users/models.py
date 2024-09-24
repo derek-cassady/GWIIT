@@ -147,6 +147,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name = 'User'
         # Plural for 'User' model
         verbose_name_plural = 'Users'
+        # Combined Indexing for faster queries
+        indexes = [
+            models.Index(fields=['email', 'username'], name='email_username_idx'),
+            models.Index(fields=['first_name', 'last_name'], name='first_last_name_idx'),
+            models.Index(fields=['username', 'first_name', 'last_name'], name='username_first_last_name_idx'),
+        ]
 
     # Property for the full name
     @property

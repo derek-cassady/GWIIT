@@ -79,8 +79,8 @@ class ContactManager(models.Manager):
 
 class Contact(models.Model):
     site = models.ForeignKey('Site', on_delete=models.SET_NULL, null=True, blank=True, related_name='contacts')
-    name = models.CharField(max_length=255)
-    email = models.EmailField(null=True, blank=True)
+    name = models.CharField(max_length=255, db_index=True)
+    email = models.EmailField(null=True, blank=True, db_index=True)
     phone_number = models.CharField(max_length=20, null=True, blank=True)
     address = models.CharField(max_length=255, null=True, blank=True)
     role = models.CharField(max_length=100, null=True, blank=True)  # Role in the site (e.g., Manager)

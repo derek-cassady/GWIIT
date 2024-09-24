@@ -141,6 +141,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
+    class Meta:
+        ordering = ['email', 'username', 'first_name', 'last_name', 'badge_barcode', 'badge_rfid']
+
     # Property for the full name
     @property
     def name(self):

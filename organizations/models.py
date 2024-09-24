@@ -34,6 +34,12 @@ class Organization(models.Model):
 
     objects = OrganizationManager()
 
+    class Meta:
+        # Singular for 'Organization' model
+        verbose_name = 'Organization'
+        # Plural for 'Organization' model
+        verbose_name_plural = 'Organizations'
+
     def __str__(self):
         return self.name
     
@@ -76,7 +82,7 @@ class Contact(models.Model):
         verbose_name = 'Contact'
         # Plural for 'Contact' model
         verbose_name_plural = 'Contacts'
-        
+
     # Property for the full name
     @property
     def name(self):

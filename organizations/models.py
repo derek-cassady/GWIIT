@@ -56,7 +56,8 @@ class ContactManager(models.Manager):
 
 class Contact(models.Model):
     organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True, blank=True, related_name='contacts')
-    name = models.CharField(max_length=255)
+    first_name = models.CharField(max_length=30, null=True, blank=True)
+    last_name = models.CharField(max_length=30, null=True, blank=True)
     email = models.EmailField(null=True, blank=True)
     phone_number = models.CharField(max_length=20, null=True, blank=True)
     address = models.CharField(max_length=255, null=True, blank=True)
@@ -70,5 +71,10 @@ class Contact(models.Model):
 
     objects = ContactManager()
 
+    # Property for the full name
+    @property
+    def name(self):
+        return f"{self.first_name} {self.last_name}".strip()
+    
     def __str__(self):
         return f"{self.name} ({self.organization.name if self.organization else 'No Organization'})"    

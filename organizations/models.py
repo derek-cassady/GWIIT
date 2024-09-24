@@ -71,6 +71,12 @@ class Contact(models.Model):
 
     objects = ContactManager()
 
+    class Meta:
+        # Singular for 'Contact' model
+        verbose_name = 'Contact'
+        # Plural for 'Contact' model
+        verbose_name_plural = 'Contacts'
+        
     # Property for the full name
     @property
     def name(self):

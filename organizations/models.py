@@ -22,15 +22,15 @@ class OrganizationManager(models.Manager):
 
 class Organization(models.Model):
     # Extensible fields    
-    name = models.CharField(max_length=255, unique=True)
-    description = models.TextField(null=True, blank=True)
-    active = models.BooleanField(default=True)
+    name = models.CharField(max_length=255, unique=True, verbose_name='Organization Name')
+    description = models.TextField(null=True, blank=True, verbose_name='Organization Description')
+    active = models.BooleanField(default=True, verbose_name='Organization Active')
     
     # Tracking fields
-    date_created = models.DateTimeField(default=timezone.now)
-    created_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='created_organizations', null=True, blank=True)  # Reference to User model
-    last_modified = models.DateTimeField(auto_now=True)
-    modified_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='modified_organizations', null=True, blank=True)  # Reference to User model
+    date_created = models.DateTimeField(default=timezone.now, verbose_name='Date Created')
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='created_organizations', null=True, blank=True, verbose_name='Created By')  # Reference to User model
+    last_modified = models.DateTimeField(auto_now=True, verbose_name='Last Modified')
+    modified_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='modified_organizations', null=True, blank=True, verbose_name='Modified By')  # Reference to User model
 
     objects = OrganizationManager()
 

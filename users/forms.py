@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from .models import User
 from django.core.exceptions import ValidationError
 import phonenumbers
@@ -88,3 +88,9 @@ class CustomUserCreationForm(UserCreationForm):
     def clean_mfa_secret(self):
         mfa_secret = self.cleaned_data.get('mfa_secret', '').strip() # Remove spaces at end of entry
         return mfa_secret or None
+    
+class CustomUserChangeForm(UserChangeForm):
+    class Meta:
+        model = User
+        fields = ('email', 'username', 'first_name', 'last_name', 'badge_barcode', 'badge_rfid', 'organization',
+                  'site', 'phone_number', 'mfa_preference', 'mfa_secret', 'is_active', 'is_staff')

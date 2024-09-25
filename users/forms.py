@@ -4,6 +4,7 @@ from .models import User
 from django.core.exceptions import ValidationError
 import phonenumbers
 from phonenumbers.phonenumberutil import NumberParseException
+from django.utils.translation import gettext_lazy as _
 
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
@@ -17,14 +18,14 @@ class CustomUserCreationForm(UserCreationForm):
     def clean_email(self):
         email = self.cleaned_data.get('email').strip()  # Remove spaces at end of entry
         if User.objects.filter(email=email).exists(): # Check to see if it already exists
-            raise ValidationError("A user with this email already exists.")
+            raise ValidationError(_("A user with this email already exists."))
         return email
 
     # Clean and validate username (all lowercase, remove trailing spaces)
     def clean_username(self):
         username = self.cleaned_data.get('username').strip().lower()  # Remove spaces and lowercase
         if User.objects.filter(username=username).exists(): # Check to see if it already exists
-            raise ValidationError("A user with this username already exists.")
+            raise ValidationError(_("A user with this username already exists."))
         return username
 
     # Clean and validate first name (capitalize first letter, strip trailing spaces)
@@ -51,7 +52,7 @@ class CustomUserCreationForm(UserCreationForm):
     def clean_mfa_preference(self):
         mfa_preference = self.cleaned_data.get('mfa_preference')
         if mfa_preference not in ['none', 'google_authenticator', 'sms', 'email', 'static_otp']:
-            raise ValidationError("Invalid MFA preference.")
+            raise ValidationError(_("Invalid MFA preference."))
         return mfa_preference
     
     # Clean and validate phone number with specific error handling (optional)
@@ -66,7 +67,7 @@ class CustomUserCreationForm(UserCreationForm):
             
             # Validate if it's a valid phone number for that country
             if not phonenumbers.is_valid_number(parsed_number):
-                raise ValidationError("The phone number entered is not valid for the US.")
+                raise ValidationError(_("The phone number entered is not valid for the US."))
             
             # Return phone number in standardized E.164 format (+1XXXXXXXXXX)
             return phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)
@@ -74,15 +75,15 @@ class CustomUserCreationForm(UserCreationForm):
         except NumberParseException as e:
             # Handle different types of number parsing exceptions
             if e.error_type == NumberParseException.TOO_SHORT_AFTER_IDD:
-                raise ValidationError("The phone number is too short after the international dialing code.")
+                raise ValidationError(_("The phone number is too short after the international dialing code."))
             elif e.error_type == NumberParseException.TOO_SHORT_NSN:
-                raise ValidationError("The phone number is too short.")
+                raise ValidationError(_("The phone number is too short."))
             elif e.error_type == NumberParseException.INVALID_COUNTRY_CODE:
-                raise ValidationError("The country code is invalid.")
+                raise ValidationError(_("The country code is invalid."))
             elif e.error_type == NumberParseException.NOT_A_NUMBER:
-                raise ValidationError("The input is not a valid phone number.")
+                raise ValidationError(_("The input is not a valid phone number."))
             else:
-                raise ValidationError("Invalid phone number format.")
+                raise ValidationError(_("Invalid phone number format."))
 
     # Clean and validate MFA secret (optional)
     def clean_mfa_secret(self):

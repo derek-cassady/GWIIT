@@ -4,13 +4,14 @@ from django.utils import timezone
 from organizations.models import Organization
 from sites.models import Site
 from django.contrib.auth import get_user_model
+from django.utils.translation import gettext_lazy as _
 
 MFA_CHOICES = [
-    ('none', 'None'),
-    ('google_authenticator', 'Google Authenticator'),
-    ('sms', 'SMS'),
-    ('email', 'Email'),
-    ('static_otp', 'Static OTP'),
+    ('none', _('None')),
+    ('google_authenticator', _('Google Authenticator')),
+    ('sms', _('SMS')),
+    ('email', _('Email')),
+    ('static_otp', _('Static OTP')),
 ]
 
 class UserManager(models.Manager):
@@ -113,28 +114,28 @@ class UserManager(models.Manager):
         return self.filter(date_joined__gte=last_30_days, organization=organization)
 
 class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(unique=True, db_index=True, verbose_name='Email Address')
-    username = models.CharField(max_length=30, unique=True, null=True, blank=True, db_index=True, verbose_name='Username')
-    first_name = models.CharField(max_length=30, null=True, blank=True, db_index=True, verbose_name='First Name')
-    last_name = models.CharField(max_length=30, null=True, blank=True, db_index=True, verbose_name='Last Name')
-    badge_barcode = models.CharField(max_length=100, unique=True, null=True, blank=True, db_index=True, verbose_name='Badge Barcode')
-    badge_rfid = models.CharField(max_length=100, unique=True, null=True, blank=True, db_index=True, verbose_name='Badge RFID')
-    organization = models.ForeignKey('Organization', on_delete=models.SET_NULL, null=True, blank=True, related_name='users', verbose_name='Organization Name')
-    site = models.ForeignKey('Site', on_delete=models.SET_NULL, null=True, blank=True, related_name='users', verbose_name='Site Name')
-    phone_number = models.CharField(max_length=15, null=True, blank=True, verbose_name='Phone Number')
-    mfa_preference = models.CharField(max_length=50, choices=MFA_CHOICES, default='none', verbose_name='MFA Preference')
-    mfa_secret = models.CharField(max_length=100, null=True, blank=True, verbose_name='MFA Secret')  # For Google Authenticator
-    static_otp = models.TextField(null=True, blank=True, verbose_name='Static OTP')  # Comma-separated static OTPs
-    is_active = models.BooleanField(default=True, verbose_name='Is Active')
-    is_staff = models.BooleanField(default=False, verbose_name='Is Staff')
-    last_login = models.DateTimeField(null=True, blank=True, verbose_name='Last Login')
+    email = models.EmailField(unique=True, db_index=True, verbose_name=_('Email Address'))
+    username = models.CharField(max_length=30, unique=True, null=True, blank=True, db_index=True, verbose_name=_('Username'))
+    first_name = models.CharField(max_length=30, null=True, blank=True, db_index=True, verbose_name=_('First Name'))
+    last_name = models.CharField(max_length=30, null=True, blank=True, db_index=True, verbose_name=_('Last Name'))
+    badge_barcode = models.CharField(max_length=100, unique=True, null=True, blank=True, db_index=True, verbose_name=_('Badge Barcode'))
+    badge_rfid = models.CharField(max_length=100, unique=True, null=True, blank=True, db_index=True, verbose_name=_('Badge RFID'))
+    organization = models.ForeignKey('Organization', on_delete=models.SET_NULL, null=True, blank=True, related_name='users', verbose_name=_('Organization Name'))
+    site = models.ForeignKey('Site', on_delete=models.SET_NULL, null=True, blank=True, related_name='users', verbose_name=_('Site Name'))
+    phone_number = models.CharField(max_length=15, null=True, blank=True, verbose_name=_('Phone Number'))
+    mfa_preference = models.CharField(max_length=50, choices=MFA_CHOICES, default='none', verbose_name=_('MFA Preference'))
+    mfa_secret = models.CharField(max_length=100, null=True, blank=True, verbose_name=_('MFA Secret'))  # For Google Authenticator
+    static_otp = models.TextField(null=True, blank=True, verbose_name=_('Static OTP'))  # Comma-separated static OTPs
+    is_active = models.BooleanField(default=True, verbose_name=_('Is Active'))
+    is_staff = models.BooleanField(default=False, verbose_name=_('Is Staff'))
+    last_login = models.DateTimeField(null=True, blank=True, verbose_name=_('Last Login'))
 
     # Tracking fields
-    date_joined = models.DateTimeField(default=timezone.now, verbose_name='Date Joined')
-    date_created = models.DateTimeField(default=timezone.now, verbose_name='Date Created')
-    created_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='created_users', verbose_name='Created By')
-    last_modified = models.DateTimeField(auto_now=True, verbose_name='Last Modified')
-    modified_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='modified_users', verbose_name='Modified By')
+    date_joined = models.DateTimeField(default=timezone.now, verbose_name=_('Date Joined'))
+    date_created = models.DateTimeField(default=timezone.now, verbose_name=_('Date Created'))
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='created_users', verbose_name=_('Created By'))
+    last_modified = models.DateTimeField(auto_now=True, verbose_name=_('Last Modified'))
+    modified_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='modified_users', verbose_name=_('Modified By'))
 
     objects = UserManager()
 
@@ -144,9 +145,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Meta:
         ordering = ['email', 'username', 'first_name', 'last_name', 'badge_barcode', 'badge_rfid']
         # Singular for 'User' model
-        verbose_name = 'User'
+        verbose_name = _('User')
         # Plural for 'User' model
-        verbose_name_plural = 'Users'
+        verbose_name_plural = _('Users')
         # Combined Indexing for faster queries
         indexes = [
             models.Index(fields=['email', 'username'], name='email_username_idx'),
@@ -160,6 +161,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         return f"{self.first_name} {self.last_name}".strip()
 
     def __str__(self):
-        organization_name = self.organization.name if self.organization else 'No Organization'
-        site_name = self.site.name if self.site else 'No Site'
+        organization_name = self.organization.name if self.organization else _('No Organization')
+        site_name = self.site.name if self.site else _('No Site')
         return f"{self.email} ({organization_name} - {site_name})"

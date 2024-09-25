@@ -12,16 +12,16 @@ class CustomUserAdmin(BaseUserAdmin):
     form = CustomUserChangeForm
 
     # Fields to display in the list view
-    list_display = ['email', 'username', 'first_name', 'last_name', 'is_active', 'is_staff']
+    list_display = [_('email'), _('username'), _('first_name'), _('last_name'), _('is_active'), _('is_staff')]
     
     # Fields that can be searched
-    search_fields = ['email', 'username', 'first_name', 'last_name']
+    search_fields = [_('email'), _('username'), _('first_name'), _('last_name')]
     
     # Fields to filter
-    list_filter = ['is_active', 'is_staff', 'organization', 'site']
+    list_filter = [_('is_active'), _('is_staff'), _('organization'), _('site')]
 
     # Fields to order by (default)
-    ordering = ['email']
+    ordering = [_('email')]
 
     # Fieldsets for editing users (organizing fields in the admin)
     fieldsets = (

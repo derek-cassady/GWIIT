@@ -23,4 +23,4 @@ services:
     image: redis:alpine
 
 volumes:
-  postgres_data:
+  gwiit_auth_data:

@@ -4,6 +4,7 @@ django-axes==6.5.2
 django-otp==1.5.4
 django-redis==5.4.0
 django-tenants==3.7.0
+phonenumbers==8.13.46
 psycopg2==2.9.9
 redis==5.0.8
 sqlparse==0.5.1

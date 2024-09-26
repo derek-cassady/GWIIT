@@ -10,6 +10,15 @@ ENV PYTHONUNBUFFERED 1
 # Create the app directory and set it as working directory
 WORKDIR /app
 
+# Install dependencies for LibPostal
+RUN apt-get update && apt-get install -y \
+    libpostal-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Make sure it's installed correctly
+RUN ldconfig
+
 # Copy requirements.txt to the container and install dependencies
 COPY requirements.txt /app/
 RUN pip install --upgrade pip

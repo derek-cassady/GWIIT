@@ -1,6 +1,7 @@
 # Dockerfile
-# Base image using Python 3.9 (or preferred version)
-FROM python:3.9-slim
+# Base image using Python 3.10 or higher (or preferred version)
+# Python 3.10+ required for DJango 5.1.1
+FROM python:3.12-slim
 
 # Set environment variables to prevent buffering and enable virtual environment usage
 ENV PYTHONDONTWRITEBYTECODE 1

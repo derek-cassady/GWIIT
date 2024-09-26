@@ -1,0 +1,24 @@
+# Dockerfile
+# Base image using Python 3.9 (or preferred version)
+FROM python:3.9-slim
+
+# Set environment variables to prevent buffering and enable virtual environment usage
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Create the app directory and set it as working directory
+WORKDIR /app
+
+# Copy requirements.txt to the container and install dependencies
+COPY requirements.txt /app/
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+
+# Copy the entire project to the container
+COPY . /app/
+
+# Open the correct port for the Django app
+EXPOSE 8000
+
+# Run the Django development server (adjust to production server for deployment)
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

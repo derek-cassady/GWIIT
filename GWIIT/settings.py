@@ -82,7 +82,7 @@ DATABASES = {
         'NAME': 'gwiit_auth',  
         'USER': 'postgres',
         'PASSWORD': 'Burp33B33t',
-        'HOST': 'localhost',
+        'HOST': 'db',
         'PORT': '5432',
     }
 }

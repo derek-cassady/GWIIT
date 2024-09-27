@@ -1,14 +1,24 @@
+version: '3.8'
+
 services:
   web:
     build: .
     command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      POSTGRES_DB: gwiit_auth
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Burp33B33t
+      REDIS_URL: redis://redis:6379
+      DJANGO_SETTINGS_MODULE: GWIIT.settings
     volumes:
       - .:/app
     ports:
       - "8000:8000"
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   db:
     image: postgres:13
@@ -17,10 +27,25 @@ services:
       POSTGRES_PASSWORD: Burp33B33t
       POSTGRES_DB: gwiit_auth
     volumes:
-      - gwiit_auth_data:/var/lib/postgresql/data
+      - gwiit_db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      retries: 5
+      timeout: 5s
 
   redis:
     image: redis:alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
-  gwiit_auth_data:
+  gwiit_db_data:
+  redis_data:

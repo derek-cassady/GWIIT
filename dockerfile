@@ -1,5 +1,5 @@
 # Dockerfile
-# Base image using Python 3.10 or higher (or preferred version)
+# Base image using Python 3.12 or higher (or preferred version)
 # Python 3.10+ required for DJango 5.1.1
 FROM python:3.12-slim
 
@@ -26,6 +26,9 @@ RUN pip install -r requirements.txt
 
 # Copy the entire project to the container
 COPY . /app/
+
+# Set file permissions (optional, but good for avoiding permission issues)
+RUN chmod -R 755 /app
 
 # Open the correct port for the Django app
 EXPOSE 8000

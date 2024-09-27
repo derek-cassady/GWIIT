@@ -11,7 +11,10 @@ ENV PYTHONUNBUFFERED 1
 WORKDIR /app
 
 # Install dependencies for LibPostal
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && \
+    apt-get install -y software-properties-common && \
+    add-apt-repository ppa:postal/ppa && \
+    apt-get update && apt-get install -y \
     libpostal-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*

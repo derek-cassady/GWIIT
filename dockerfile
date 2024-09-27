@@ -10,17 +10,30 @@ ENV PYTHONUNBUFFERED 1
 # Create the app directory and set it as working directory
 WORKDIR /app
 
-# Install dependencies for LibPostal
+# Install build dependencies for LibPostal
 RUN apt-get update && \
-    apt-get install -y software-properties-common && \
-    add-apt-repository ppa:postal/ppa && \
-    apt-get update && apt-get install -y \
-    libpostal-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    apt-get install -y \
+    curl \
+    autoconf \
+    automake \
+    libtool \
+    build-essential \
+    pkg-config \
+    git
 
-# Make sure it's installed correctly
-RUN ldconfig
+# Install LibPostal from source
+RUN git clone https://github.com/openvenues/libpostal && \
+    cd libpostal && \
+    ./bootstrap.sh && \
+    ./configure && \
+    make && \
+    make install && \
+    ldconfig && \
+    cd .. && \
+    rm -rf libpostal
+
+# Clean up to reduce image size
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements.txt to the container and install dependencies
 COPY requirements.txt /app/

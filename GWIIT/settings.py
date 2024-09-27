@@ -23,9 +23,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-gp9@+*u2^px7x3crj8@ko5wmln*+k%+#ar#c+&@8@*u($d+en6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+# Change to False in production
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# Adjust in production
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -87,6 +89,23 @@ DATABASES = {
     }
 }
 
+# Redis Cache settings
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        # This references the Redis service
+        'LOCATION': 'redis://redis:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+
+# Use Redis as the session engine
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -121,8 +140,14 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
+STATIC_URL = '/static/'
+# Where static files are collected in production
+STATIC_ROOT = BASE_DIR / 'staticfiles'  
 
-STATIC_URL = 'static/'
+# Media files (uploads)
+MEDIA_URL = '/media/'
+# Where media files are collected in production
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

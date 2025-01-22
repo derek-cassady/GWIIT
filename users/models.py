@@ -1,9 +1,8 @@
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.utils import timezone
-from organizations.models import Organization
-from sites.models import Site
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 MFA_CHOICES = [
@@ -120,8 +119,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=30, null=True, blank=True, db_index=True, verbose_name=_('Last Name'))
     badge_barcode = models.CharField(max_length=100, unique=True, null=True, blank=True, db_index=True, verbose_name=_('Badge Barcode'))
     badge_rfid = models.CharField(max_length=100, unique=True, null=True, blank=True, db_index=True, verbose_name=_('Badge RFID'))
-    organization = models.ForeignKey('Organization', on_delete=models.SET_NULL, null=True, blank=True, related_name='users', verbose_name=_('Organization Name'))
-    site = models.ForeignKey('Site', on_delete=models.SET_NULL, null=True, blank=True, related_name='users', verbose_name=_('Site Name'))
+    organization = models.ForeignKey('organizations.Organization', on_delete=models.SET_NULL, null=True, blank=True, related_name='users', verbose_name=_('Organization Name'))
+    site = models.ForeignKey('sites.Site', on_delete=models.SET_NULL, null=True, blank=True, related_name='users', verbose_name=_('Site Name'))
     phone_number = models.CharField(max_length=15, null=True, blank=True, verbose_name=_('Phone Number'))
     mfa_preference = models.CharField(max_length=50, choices=MFA_CHOICES, default='none', verbose_name=_('MFA Preference'))
     mfa_secret = models.CharField(max_length=100, null=True, blank=True, verbose_name=_('MFA Secret'))  # For Google Authenticator
@@ -133,9 +132,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     # Tracking fields
     date_joined = models.DateTimeField(default=timezone.now, verbose_name=_('Date Joined'))
     date_created = models.DateTimeField(default=timezone.now, verbose_name=_('Date Created'))
-    created_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='created_users', verbose_name=_('Created By'))
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True, related_name='created_users', verbose_name=_('Created By'))
     last_modified = models.DateTimeField(auto_now=True, verbose_name=_('Last Modified'))
-    modified_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='modified_users', verbose_name=_('Modified By'))
+    modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True, related_name='modified_users', verbose_name=_('Modified By'))
 
     objects = UserManager()
 

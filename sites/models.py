@@ -1,6 +1,6 @@
 from django.db import models
-from organizations.models import Organization
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -39,7 +39,7 @@ class SiteManager(models.Manager):
 
 class Site(models.Model):
     name = models.CharField(max_length=255, db_index=True, verbose_name=_('Site Name'))
-    organization = models.ForeignKey(Organization, on_delete=models.PROTECT, related_name='sites', verbose_name=_('Organization Name'))  # Reference to Organization
+    organization = models.ForeignKey('organizations.Organization', on_delete=models.PROTECT, related_name='sites', verbose_name=_('Organization Name'))  # Reference to Organization
     
     # Extensible fields
     site_type = models.CharField(max_length=100, null=True, blank=True, verbose_name=_('Site Type'))  # Site type (e.g., Warehouse, Office, Clinic)
@@ -48,9 +48,9 @@ class Site(models.Model):
     
     # Tracking fields
     date_created = models.DateTimeField(default=timezone.now, verbose_name=_('Date Created'))
-    created_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='created_sites', verbose_name=_('Created By'))
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True, related_name='created_sites', verbose_name=_('Created By'))
     last_modified = models.DateTimeField(auto_now=True, verbose_name=_('Last Modified'))
-    modified_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='modified_sites', verbose_name=_('Modified By'))
+    modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True, related_name='modified_sites', verbose_name=_('Modified By'))
 
     class Meta:
         # Singular for 'Site' model
@@ -85,7 +85,7 @@ class ContactManager(models.Manager):
         return self.filter(phone_number=phone_number)
 
 class Contact(models.Model):
-    site = models.ForeignKey('Site', on_delete=models.SET_NULL, null=True, blank=True, related_name='contacts', verbose_name=_('Site Name'))
+    site = models.ForeignKey('sites.Site', on_delete=models.SET_NULL, null=True, blank=True, related_name='contacts', verbose_name=_('Site Name'))
     first_name = models.CharField(max_length=30, null=True, blank=True, verbose_name=_('First Name'))
     last_name = models.CharField(max_length=30, null=True, blank=True, verbose_name=_('Last Name'))
     email = models.EmailField(null=True, blank=True, db_index=True, verbose_name=_('Email Address'))
@@ -95,9 +95,9 @@ class Contact(models.Model):
 
     # Tracking fields
     date_created = models.DateTimeField(default=timezone.now, verbose_name=_('Date Created'))
-    created_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='created_site_contacts', verbose_name=_('Created By'))
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True, related_name='created_site_contacts', verbose_name=_('Created By'))
     last_modified = models.DateTimeField(auto_now=True, verbose_name=_('Last Modified'))
-    modified_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='modified_site_contacts', verbose_name=_('Modified By'))
+    modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True, related_name='modified_site_contacts', verbose_name=_('Modified By'))
 
     objects = ContactManager()
 

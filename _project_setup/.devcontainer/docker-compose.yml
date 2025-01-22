@@ -11,7 +11,7 @@ services:
       REDIS_URL: redis://redis:6379
       DJANGO_SETTINGS_MODULE: GWIIT.settings
     volumes:
-      - .:/app
+      - ../:/app
     ports:
       - "8000:8000"
     depends_on:

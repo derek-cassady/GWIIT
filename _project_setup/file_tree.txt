@@ -1,0 +1,85 @@
+GWIIT
+┣ _project_setup
+┃ ┣ .devcontainer
+┃ ┣ devcontainer.json
+┃ ┗ docker-compose.yml
+┃ ┣ .git
+┃ ┣ .github
+┃ ┗ dependabot.yml
+┃ ┣ .venv
+┃ ┣ planning_docs
+┃ ┃ ┣ GWIIT_Databases.docx
+┃ ┃ ┣ GWIIT_login_out.docx
+┃ ┃ ┣ GWIIT_Outline.docx
+┃ ┃ ┣ GWIIT_Programming Guide.docx
+┃ ┃ ┣ GWIIT_User_Roles_Permissions.docx
+┃ ┃ ┣ GWITT_login_flow.vsdx
+┃ ┃ ┣ GWITT_login_UML.vsdx
+┃ ┃ ┣ GWITT_logout_flow.vsdx
+┃ ┃ ┗ GWITT_session_logout_flow.vsdx
+┃ ┣ .gitignore
+┃ ┣ docker-compose.yml
+┃ ┣ dockerfile
+┃ ┣ README.md
+┃ ┗ requirements.txt
+┣ GWIIT
+┃ ┣ static
+┃ ┃ ┣ css
+┃ ┃ ┃ ┗ base.css
+┃ ┃ ┣ images
+┃ ┃ ┣ js
+┃ ┃ ┃ ┗ base.js
+┃ ┣ templates
+┃ ┃ ┗ base.html
+┃ ┣ asgi.py
+┃ ┣ settings.py
+┃ ┣ urls.py
+┃ ┣ wsgi.py
+┃ ┗ __init__.py
+┣ organizations
+┃ ┣ migrations
+┃ ┃ ┗ __init__.py
+┃ ┣ templates
+┃ ┣ admin.py
+┃ ┣ apps.py
+┃ ┣ forms.py
+┃ ┣ models.py
+┃ ┣ tests.py
+┃ ┣ views.py
+┃ ┗ __init__.py
+┣ sites
+┃ ┣ migrations
+┃ ┃ ┗ __init__.py
+┃ ┣ templates
+┃ ┣ admin.py
+┃ ┣ apps.py
+┃ ┣ forms.py
+┃ ┣ models.py
+┃ ┣ tests.py
+┃ ┣ views.py
+┃ ┗ __init__.py
+┣ users
+┃ ┣ migrations
+┃ ┃ ┗ __init__.py
+┃ ┣ static
+┃ ┃ ┗ users
+┃ ┃ ┃ ┣ css
+┃ ┃ ┃ ┃ ┗ styles.css
+┃ ┃ ┃ ┗ js
+┃ ┃ ┃ ┃ ┗ scripts.js
+┃ ┣ templates
+┃ ┃ ┗ users
+┃ ┃ ┃ ┣ login.html
+┃ ┃ ┃ ┣ logout.html
+┃ ┃ ┃ ┣ user_management.html
+┃ ┃ ┃ ┗ user_profile.html
+┃ ┣ admin.py
+┃ ┣ apps.py
+┃ ┣ forms.py
+┃ ┣ models.py
+┃ ┣ signals.py
+┃ ┣ tests.py
+┃ ┣ urls.py
+┃ ┣ views.py
+┃ ┗ __init__.py
+┗ manage.py

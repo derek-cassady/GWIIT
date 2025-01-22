@@ -59,7 +59,7 @@ ROOT_URLCONF = 'GWIIT.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'GWIIT' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -80,13 +80,17 @@ WSGI_APPLICATION = 'GWIIT.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'gwiit_auth',  
-        'USER': 'postgres',
-        'PASSWORD': 'Burp33B33t',
-        'HOST': 'db',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',  # Or use a file-based SQLite database
     }
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.postgresql',
+    #     'NAME': 'gwiit_auth',  
+    #     'USER': 'postgres',
+    #     'PASSWORD': 'Burp33B33t',
+    #     'HOST': 'db',
+    #     'PORT': '5432',
+    # }
 }
 
 # Redis Cache settings
@@ -141,6 +145,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 STATIC_URL = '/static/'
+
+STATICFILES_DIRS = [
+    BASE_DIR / 'GWIIT' / 'static',
+]
+
 # Where static files are collected in production
 STATIC_ROOT = BASE_DIR / 'staticfiles'  
 

@@ -22,7 +22,8 @@ GWIIT
 ┃ ┣ dockerfile
 ┃ ┣ README.md
 ┃ ┗ requirements.txt
-┣ GWIIT
+┣ GWIIT4
+┃ ┣ _pycache_
 ┃ ┣ static
 ┃ ┃ ┣ css
 ┃ ┃ ┃ ┗ base.css
@@ -31,36 +32,47 @@ GWIIT
 ┃ ┃ ┃ ┗ base.js
 ┃ ┣ templates
 ┃ ┃ ┗ base.html
+┃ ┣ __init__.py
 ┃ ┣ asgi.py
 ┃ ┣ settings.py
 ┃ ┣ urls.py
-┃ ┣ wsgi.py
-┃ ┗ __init__.py
+┃ ┗ wsgi.py
 ┣ organizations
+┃ ┣ _pycache_
 ┃ ┣ migrations
-┃ ┃ ┗ __init__.py
+┃ ┃ ┣ _pycache_
+┃ ┃ ┣ __init__.py
+┃ ┃ ┣ 0001_initial.py
+┃ ┃ ┗ 0002_initial.py
 ┃ ┣ templates
+┃ ┣ __init__.py
 ┃ ┣ admin.py
 ┃ ┣ apps.py
 ┃ ┣ forms.py
 ┃ ┣ models.py
 ┃ ┣ tests.py
-┃ ┣ views.py
-┃ ┗ __init__.py
+┃ ┗ views.py
 ┣ sites
+┃ ┣ _pycache_
 ┃ ┣ migrations
-┃ ┃ ┗ __init__.py
+┃ ┃ ┣ _pycache_
+┃ ┃ ┣ __init__.py
+┃ ┃ ┣ 0001_initial.py
+┃ ┃ ┗ 0002_initial.py
 ┃ ┣ templates
+┃ ┣ __init__.py
 ┃ ┣ admin.py
 ┃ ┣ apps.py
 ┃ ┣ forms.py
 ┃ ┣ models.py
 ┃ ┣ tests.py
-┃ ┣ views.py
-┃ ┗ __init__.py
+┃ ┗ views.py
 ┣ users
+┃ ┣ _pycache_
 ┃ ┣ migrations
-┃ ┃ ┗ __init__.py
+┃ ┃ ┣ _pycache_
+┃ ┃ ┣ __init__.py
+┃ ┃ ┗ 0001_initial.py
 ┃ ┣ static
 ┃ ┃ ┗ users
 ┃ ┃ ┃ ┣ css
@@ -73,6 +85,7 @@ GWIIT
 ┃ ┃ ┃ ┣ logout.html
 ┃ ┃ ┃ ┣ user_management.html
 ┃ ┃ ┃ ┗ user_profile.html
+┃ ┣ __init__.py
 ┃ ┣ admin.py
 ┃ ┣ apps.py
 ┃ ┣ forms.py
@@ -80,6 +93,5 @@ GWIIT
 ┃ ┣ signals.py
 ┃ ┣ tests.py
 ┃ ┣ urls.py
-┃ ┣ views.py
-┃ ┗ __init__.py
+┃ ┗ views.py
 ┗ manage.py

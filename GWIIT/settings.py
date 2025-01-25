@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'users', #custom user model app
     'organizations', #custom organizations model app
     'sites', #custom organizations model app
+    'authentication' #custom authentication model app
 ]
 
 MIDDLEWARE = [

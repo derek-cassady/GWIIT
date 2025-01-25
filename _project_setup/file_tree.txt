@@ -22,6 +22,15 @@ GWIIT
 ┃ ┣ dockerfile
 ┃ ┣ README.md
 ┃ ┗ requirements.txt
+┣ authentication
+┃ ┣ migrations
+┃ ┃ ┗ __init__.py
+┃ ┣ __init__.py
+┃ ┣ admin.py
+┃ ┣ apps.py
+┃ ┣ models.py
+┃ ┣ tests.py
+┃ ┗ views.py
 ┣ GWIIT4
 ┃ ┣ _pycache_
 ┃ ┣ static

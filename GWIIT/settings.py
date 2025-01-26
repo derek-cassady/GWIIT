@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Anchor point to define relative paths for resources like templates, static files, and database files.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -26,7 +26,8 @@ SECRET_KEY = 'django-insecure-gp9@+*u2^px7x3crj8@ko5wmln*+k%+#ar#c+&@8@*u($d+en6
 # Change to False in production
 DEBUG = True
 
-# Adjust in production
+# Adjust in production for domain and IP addresses allowed to access webapp.
+#CIDR ranges (192.168.1.0/24) are not supported
 ALLOWED_HOSTS = ['*']
 
 
@@ -65,10 +66,20 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                # Adds debugging context (e.g., DEBUG value) to templates
                 'django.template.context_processors.debug',
+                # Provides the request object in templates
                 'django.template.context_processors.request',
+                # Adds user authentication context (e.g., user object, permissions)
                 'django.contrib.auth.context_processors.auth',
+                # Adds Django's messaging framework (e.g., success/error messages)
                 'django.contrib.messages.context_processors.messages',
+                # Adds STATIC_URL for serving static files in templates
+                'django.template.context_processors.static',
+                # Enables internationalization (e.g., language translation support)
+                'django.template.context_processors.i18n',
+                # Adds MEDIA_URL for serving user-uploaded files in templates
+                'django.template.context_processors.media',
             ],
         },
     },

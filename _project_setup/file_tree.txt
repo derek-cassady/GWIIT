@@ -40,6 +40,27 @@ GWIIT
 ┃ ┣ apps.py
 ┃ ┣ models.py
 ┃ ┣ tests.py
+┃ ┣ urls.py
+┃ ┗ views.py
+┣ authorization
+┃ ┣ migrations
+┃ ┃ ┗ __init__.py
+┃ ┣ static
+┃ ┃ ┗ authorization
+┃ ┃ ┃ ┣ css
+┃ ┃ ┃ ┃ ┗ styles.css
+┃ ┃ ┃ ┗ js
+┃ ┃ ┃ ┃ ┗ scripts.js
+┃ ┣ templates
+┃ ┃ ┗ authorization
+┃ ┃ ┃ ┣ roles.html
+┃ ┃ ┃ ┣ permissions.html
+┃ ┣ __init__.py
+┃ ┣ admin.py
+┃ ┣ apps.py
+┃ ┣ models.py
+┃ ┣ tests.py
+┃ ┣ urls.py
 ┃ ┗ views.py
 ┣ GWIIT4
 ┃ ┣ _pycache_

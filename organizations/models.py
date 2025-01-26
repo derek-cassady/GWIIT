@@ -22,6 +22,41 @@ class OrganizationManager(models.Manager):
     def modified_by_user(self, user):
         return self.filter(modified_by=user)
 
+class OrganizationType(models.Model):
+    # field for name of the organization type
+    name = models.CharField(
+        max_length=50, 
+        unique=True, 
+        verbose_name=_("Type Name")
+        )
+    
+    # field for details of the organization type
+    description = models.TextField(
+        null=True, 
+        blank=True, 
+        verbose_name=_("Type Description")
+        )
+
+    class Meta:
+        # Specifies the singular display name for the model.
+        # Used in places like the admin panel or form labels.
+        verbose_name = _("Organization Type")
+
+        # Specifies the plural display name for the model.
+        # Used in places like the admin panel or form labels.
+        verbose_name_plural = _("Organization Types")
+
+        # Defines the default order for query results involving this model.
+        # when querying this model (e.g., OrganizationType.objects.all()), 
+        # the results will be sorted alphabetically by the name field.
+        ordering = ["name"]
+
+        # Explicit table name for DB creation
+        db_table = "organization_type"
+
+    def __str__(self):
+        return self.name
+    
 # Core organization details
 class Organization(models.Model):
     # Name of the organization (must be unique).   
@@ -31,11 +66,14 @@ class Organization(models.Model):
         verbose_name=_('Organization Name')
         )
     
-    type = models.TextField(
-        max_length=50, 
+    type = models.ForeignKey(
+        # Reference "OrganizationType" model
+        'OrganizationType', 
+        # Prevent deletion if used in organizations
+        on_delete=models.PROTECT,
         null=True, 
         blank=True, 
-        verbose_name=_('Organization Type')
+        verbose_name=_('Type')
         )
     
     active = models.BooleanField(

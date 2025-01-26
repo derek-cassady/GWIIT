@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="{% static 'organizations/js/scripts.js' %}" defer></script>
+    <title>Manage Organization Types</title>
+</head>
+<body>
+    <h1>Manage Organization Types</h1>
+
+    <!-- Section: Add New Organization Type -->
+    <section>
+        <h2>Add Organization Type</h2>
+        <form method="post" id="add-type-form">
+            {% csrf_token %}
+            <input type="hidden" name="form_name" value="add_type_form">
+            {{ add_form.as_p }}
+            <button type="submit">Add</button>
+        </form>
+    </section>
+
+    <!-- Section: List Organization Types -->
+    <section>
+        <h2>Existing Organization Types</h2>
+        <ul>
+            {% for type in types %}
+                <li>
+                    <strong>{{ type.name }}</strong> - {{ type.description }}
+                    <button onclick="showEditForm({{ type.pk }})">Edit</button>
+                    <button onclick="showDeleteConfirmation({{ type.pk }})">Delete</button>
+                </li>
+            {% empty %}
+                <li>No organization types found.</li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <!-- Edit Form (Hidden by Default) -->
+    <section id="edit-type-section" style="display: none;">
+        <h2>Edit Organization Type</h2>
+        <form method="post" id="edit-type-form">
+            {% csrf_token %}
+            <input type="hidden" name="form_name" value="edit_type_form">
+            {{ edit_form.as_p }}
+            <button type="submit">Save Changes</button>
+            <button type="button" onclick="hideEditForm()">Cancel</button>
+        </form>
+    </section>
+
+    <!-- Delete Confirmation Modal (Hidden by Default) -->
+    <div id="delete-confirmation-modal" style="display: none;">
+        <p>Are you sure you want to delete this organization type?</p>
+        <form method="post" id="delete-type-form">
+            {% csrf_token %}
+            <button type="submit">Yes, Delete</button>
+            <button type="button" onclick="hideDeleteConfirmation()">Cancel</button>
+        </form>
+    </div>
+
+    <script>
+        // JavaScript to toggle visibility of forms and modals
+        function showEditForm(pk) {
+            document.getElementById('edit-type-section').style.display = 'block';
+            // Fetch data for the specific organization type and populate the form dynamically if needed
+        }
+
+        function hideEditForm() {
+            document.getElementById('edit-type-section').style.display = 'none';
+        }
+
+        function showDeleteConfirmation(pk) {
+            const modal = document.getElementById('delete-confirmation-modal');
+            modal.style.display = 'block';
+
+            // Dynamically update the form action with the correct pk
+            const deleteForm = document.getElementById('delete-type-form');
+            deleteForm.action = `/organizations/types/delete/${pk}/`;
+        }
+
+        function hideDeleteConfirmation() {
+            const modal = document.getElementById('delete-confirmation-modal');
+            modal.style.display = 'none';
+        }
+    
+    </script>
+</body>
+</html>

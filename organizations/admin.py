@@ -1,30 +1,45 @@
 from django.contrib import admin
-from .models import Organization, Contact
+from .models import Organization, Contact, OrganizationType
 
+# Register (add) 'Organization' model
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
-    # Fields to display in the list view
-    list_display = ['name', 'description', 'active', 'date_created', 'created_by', 'last_modified', 'modified_by']
+    # Display field(s) in the list view
+    list_display = ['name', 'type', 'active', 'date_created', 'created_by', 'last_modified', 'modified_by']
     
-    # Fields that can be searched
-    search_fields = ['name', 'description']
+    # Enable search by field(s)
+    search_fields = ['name', 'type']
     
-    # Fields to filter
+    # Enable filter by field(s)
     list_filter = ['active', 'date_created', 'created_by', 'modified_by']
     
-    # Fields to order by (default)
+    # Field(s) to order by (default)
     ordering = ['name', 'date_created']
 
+
+# Register (add) 'OrganizationType' model
+@admin.register(OrganizationType)
+class OrganizationTypeAdmin(admin.ModelAdmin):
+    # Display field(s) in the list view
+    list_display = ('name', 'description')
+    
+    # Enable search by field(s)
+    search_fields = ('name',)
+    
+    # Field(s) to order by (default)
+    ordering = ('name',)
+
+# Register (add) 'Contact' model   
 @admin.register(Contact)
 class ContactAdmin(admin.ModelAdmin):
-    # Fields to display in the list view
+    # Display field(s) in the list view
     list_display = ['first_name', 'last_name', 'email', 'phone_number', 'role', 'organization', 'date_created']
     
-    # Fields that can be searched
+    # Enable search by field(s)
     search_fields = ['first_name', 'last_name', 'email', 'phone_number', 'role', 'organization__name']
     
-    # Fields to filter
+    # Enable filter by field(s)
     list_filter = ['organization', 'role', 'date_created']
     
-    # Fields to order by (default)
+    # Field(s) to order by (default)
     ordering = ['last_name', 'first_name', 'organization', 'date_created']

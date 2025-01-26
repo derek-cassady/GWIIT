@@ -84,7 +84,14 @@ GWIIT
 ┃ ┃ ┣ __init__.py
 ┃ ┃ ┣ 0001_initial.py
 ┃ ┃ ┗ 0002_initial.py
+┃ ┣ static
+┃ ┃ ┗ authorization
+┃ ┃ ┃ ┣ css
+┃ ┃ ┃ ┃ ┗ styles.css
+┃ ┃ ┃ ┗ js
+┃ ┃ ┃ ┃ ┗ scripts.js
 ┃ ┣ templates
+┃ ┃ ┗ organization_types.html
 ┃ ┣ __init__.py
 ┃ ┣ admin.py
 ┃ ┣ apps.py

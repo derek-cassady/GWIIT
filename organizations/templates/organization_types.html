@@ -61,8 +61,28 @@
     <script>
         // JavaScript to toggle visibility of forms and modals
         function showEditForm(pk) {
+            // Show the edit form section
             document.getElementById('edit-type-section').style.display = 'block';
-            // Fetch data for the specific organization type and populate the form dynamically if needed
+
+            // Fetch the organization type data from the backend
+            fetch(`/organizations/types/edit/${pk}/`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch organization type data');
+                    }
+                    return response.json();
+                })
+        
+                .then(data => {
+                    // Populate the form fields with the fetched data
+                    document.querySelector('#edit-type-form [name="name"]').value = data.name;
+                    document.querySelector('#edit-type-form [name="description"]').value = data.description;
+                })
+        
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to load organization type data. Please try again.');
+                });
         }
 
         function hideEditForm() {

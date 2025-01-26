@@ -26,6 +26,18 @@ def organization_type_manage(request):
         'add_form': add_form,
     })
 
+def get_organization_type_details(request, pk):
+    """API endpoint to fetch organization type details."""
+    try:
+        org_type = get_object_or_404(OrganizationType, pk=pk)
+        data = {
+            'name': org_type.name,
+            'description': org_type.description,
+        }
+        return JsonResponse(data, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
 def get_organization_type_description(request):
     
     # API endpoint to fetch the description of organization type based on name.

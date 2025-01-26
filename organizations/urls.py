@@ -14,6 +14,9 @@ urlpatterns = [
     # OrganizationType management (add) route
     path('types/manage/', views.organization_type_manage, name='organization_type_manage'),
 
+    # OrganizationType details route
+path('types/edit/<int:pk>/', views.get_organization_type_details, name='get_organization_type_details'),
+    
     # OrganizationType description route
     path('type-description/', views.get_organization_type_description, name='type_description'),
 

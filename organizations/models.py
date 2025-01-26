@@ -22,17 +22,77 @@ class OrganizationManager(models.Manager):
     def modified_by_user(self, user):
         return self.filter(modified_by=user)
 
+# Core organization details
 class Organization(models.Model):
-    # Extensible fields    
-    name = models.CharField(max_length=255, unique=True, verbose_name=_('Organization Name'))
-    description = models.TextField(null=True, blank=True, verbose_name=_('Organization Description'))
-    active = models.BooleanField(default=True, verbose_name=_('Organization Active'))
+    # Name of the organization (must be unique).   
+    name = models.CharField(
+        max_length=100, 
+        unique=True, 
+        verbose_name=_('Organization Name')
+        )
     
+    type = models.TextField(
+        max_length=50, 
+        null=True, 
+        blank=True, 
+        verbose_name=_('Organization Type')
+        )
+    
+    active = models.BooleanField(
+        default=True, 
+        verbose_name=_('Organization Active')
+        )
+    
+    # Reference the Contact model, Allow the organization to persist if the contact is deleted
+    contact = models.OneToOneField(
+        'organizations.Contact', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name="organization", 
+        verbose_name=_("Contact")
+        )
+ 
+    # Preferences and settings
+    login_options = models.JSONField(
+        default=dict, 
+        verbose_name=_("Login Options")
+    )
+
+    mfa_required = models.BooleanField(
+        default=False, 
+        verbose_name=_("MFA Required")
+    )
+
     # Tracking fields
-    date_created = models.DateTimeField(default=timezone.now, verbose_name=_('Date Created'))
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='created_organizations', null=True, blank=True, verbose_name=_('Created By'))  # Reference to User model
-    last_modified = models.DateTimeField(auto_now=True, verbose_name=_('Last Modified'))
-    modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='modified_organizations', null=True, blank=True, verbose_name=_('Modified By'))  # Reference to User model
+    date_created = models.DateTimeField(
+        auto_now_add=True, 
+        verbose_name=_('Date Created')
+        )
+    
+    # Reference to User model
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.PROTECT, 
+        related_name='created_organizations', 
+        null=True, blank=True, 
+        verbose_name=_('Created By')
+        )
+    
+    last_modified = models.DateTimeField(
+        auto_now=True, 
+        verbose_name=_('Last Modified')
+        )
+    
+    # Reference to User model
+    modified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.PROTECT, 
+        related_name='modified_organizations', 
+        null=True, 
+        blank=True, 
+        verbose_name=_('Modified By')
+        )
 
     objects = OrganizationManager()
 

@@ -39,10 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'users', #custom user model app
+    'authentication', #custom authentication model app
+    'authorization', #custom authorization model app
     'organizations', #custom organizations model app
     'sites', #custom organizations model app
-    'authentication' #custom authentication model app
+    'users', #custom user model app
 ]
 
 MIDDLEWARE = [

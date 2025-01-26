@@ -22,7 +22,7 @@ urlpatterns = [
     # Include the URLs for the authentication app
     path('authentication/', include(('authentication.urls', 'authentication'), namespace='authentication')),
     # Placeholder for other apps (optional)
-    # path('users/', include(('users.urls', 'users'), namespace='users')),
+    path('users/', include(('users.urls', 'users'), namespace='users')),
     path('organizations/', include(('organizations.urls', 'organizations'), namespace='organizations')),
     path('sites/', include(('sites.urls', 'sites'), namespace='sites')),
 ]

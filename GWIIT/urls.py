@@ -19,10 +19,9 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # Include the URLs for the authentication app
     path('authentication/', include(('authentication.urls', 'authentication'), namespace='authentication')),
-    # Placeholder for other apps (optional)
-    path('users/', include(('users.urls', 'users'), namespace='users')),
+    path('authorization/', include(('authorization.urls', 'aauthorization'), namespace='authorization')),
     path('organizations/', include(('organizations.urls', 'organizations'), namespace='organizations')),
     path('sites/', include(('sites.urls', 'sites'), namespace='sites')),
+    path('users/', include(('users.urls', 'users'), namespace='users')),
 ]

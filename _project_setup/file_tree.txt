@@ -25,6 +25,16 @@ GWIIT
 ┣ authentication
 ┃ ┣ migrations
 ┃ ┃ ┗ __init__.py
+┃ ┣ static
+┃ ┃ ┗ authentication
+┃ ┃ ┃ ┣ css
+┃ ┃ ┃ ┃ ┗ styles.css
+┃ ┃ ┃ ┗ js
+┃ ┃ ┃ ┃ ┗ scripts.js
+┃ ┣ templates
+┃ ┃ ┗ authentication
+┃ ┃ ┃ ┣ login.html
+┃ ┃ ┃ ┣ logout.html
 ┃ ┣ __init__.py
 ┃ ┣ admin.py
 ┃ ┣ apps.py
@@ -90,8 +100,6 @@ GWIIT
 ┃ ┃ ┃ ┃ ┗ scripts.js
 ┃ ┣ templates
 ┃ ┃ ┗ users
-┃ ┃ ┃ ┣ login.html
-┃ ┃ ┃ ┣ logout.html
 ┃ ┃ ┃ ┣ user_management.html
 ┃ ┃ ┃ ┗ user_profile.html
 ┃ ┣ __init__.py

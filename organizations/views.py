@@ -17,6 +17,10 @@ def organization_type_manage(request):
         if add_form.is_valid():
             add_form.save()
             return redirect('organizations:organization_type_manage')
+        
+        else:
+            messages.error(request, 
+                _('Failed to add organization type. Please fix the errors below.'))
     else:
         add_form = OrganizationTypeForm()
 
@@ -75,6 +79,10 @@ def edit_organization_type(request, pk):
         if form.is_valid():
             form.save()
             return redirect('organizations:organization_type_manage')
+        
+        else:
+            messages.error(
+                request, _('Failed to edit organization type. Please fix the errors below.'))
 
     # Render the edit form with errors (if any)
     return render(request, 'organizations/organization_types.html', {

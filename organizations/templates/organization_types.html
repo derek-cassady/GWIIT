@@ -58,6 +58,14 @@
         </form>
     </div>
 
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    
     <script>
         // JavaScript to toggle visibility of forms and modals
         function showEditForm(pk) {

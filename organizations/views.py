@@ -100,3 +100,21 @@ def delete_organization_type(request, pk):
 
     # Redirect or return an error if the request method is not POST
     return HttpResponseRedirect('organizations:organization_type_manage')
+
+def organization_list(request):
+    # Fetch all organizations
+    organizations = Organization.objects.all()
+
+    # Render the organization list template
+    return render(request, 'organizations/organization_list.html', {
+        'organizations': organizations,
+    })
+
+def organization_detail(request, pk):
+    # Fetch the organization by primary key or return 404 if not found
+    organization = get_object_or_404(Organization, pk=pk)
+
+    # Render the organization detail template
+    return render(request, 'organizations/organization_detail.html', {
+        'organization': organization,
+    })

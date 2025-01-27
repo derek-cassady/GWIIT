@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organization Details</title>
+</head>
+<body>
+    <h1>{{ organization.name }}</h1>
+    <p><strong>Type:</strong> {{ organization.type }}</p>
+    <p><strong>Contact Email:</strong> {{ organization.contact_email }}</p>
+    <p><strong>Contact Phone:</strong> {{ organization.contact_phone }}</p>
+    <p><strong>Contact Address:</strong> {{ organization.contact_address }}</p>
+    <p><strong>Date Created:</strong> {{ organization.date_created }}</p>
+    <p><strong>Last Modified:</strong> {{ organization.last_modified }}</p>
+    <a href="{% url 'organizations:organization_list' %}">Back to List</a>
+</body>
+</html>

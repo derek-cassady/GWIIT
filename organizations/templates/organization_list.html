@@ -9,7 +9,16 @@
     <h1>Organization List</h1>
     <ul>
         {% for organization in organizations %}
-            <li>{{ organization.name }}</li>
+            <li>
+                <strong>{{ organization.name }}</strong>
+                <ul>
+                    {% for contact in organization.organization_contacts.all %}
+                        <li>{{ contact }}</li>
+                    {% empty %}
+                        <li>No contacts found for this organization.</li>
+                    {% endfor %}
+                </ul>
+            </li>
         {% empty %}
             <li>No organizations found.</li>
         {% endfor %}

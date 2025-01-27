@@ -87,7 +87,7 @@ class Organization(models.Model):
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True, 
-        related_name="organization", 
+        related_name="organization_contact", 
         verbose_name=_("Contact")
         )
  
@@ -161,7 +161,7 @@ class ContactManager(models.Manager):
         return self.filter(modified_by=user)
 
 class Contact(models.Model):
-    organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True, blank=True, related_name='contacts', verbose_name=_('Organization Name'))
+    organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True, blank=True, related_name='contact_organization', verbose_name=_('contact_organization'))
     first_name = models.CharField(max_length=30, null=True, blank=True, verbose_name=_('First Name'))
     last_name = models.CharField(max_length=30, null=True, blank=True, verbose_name=_('Last Name'))
     email = models.EmailField(null=True, blank=True, verbose_name=_('Email Address'))

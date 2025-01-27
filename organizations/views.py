@@ -114,7 +114,11 @@ def organization_detail(request, pk):
     # Fetch the organization by primary key or return 404 if not found
     organization = get_object_or_404(Organization, pk=pk)
 
+    # Fetch related contacts using the updated related_name
+    contacts = organization.organization_contacts.all()
+
     # Render the organization detail template
     return render(request, 'organizations/organization_detail.html', {
         'organization': organization,
+        'contacts': contacts,
     })

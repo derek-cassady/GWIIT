@@ -62,7 +62,7 @@ GWIIT
 ┃ ┣ tests.py
 ┃ ┣ urls.py
 ┃ ┗ views.py
-┣ GWIIT4
+┣ GWIIT
 ┃ ┣ _pycache_
 ┃ ┣ static
 ┃ ┃ ┣ css

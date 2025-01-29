@@ -91,20 +91,100 @@ WSGI_APPLICATION = 'GWIIT.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+'''
+# Databases for production build, commented out for testing and demo
 DATABASES = {
+    # General fallback database
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'default_db',
+        'USER': 'default_user',
+        'PASSWORD': 'password',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    },
+    
+    'auth_db': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'auth_db',
+        'USER': 'auth_user',
+        'PASSWORD': 'password',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    },
+    
+    'authorization_db': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'authorization_db',
+        'USER': 'authorization_user',
+        'PASSWORD': 'password',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    },
+    
+    'organizations_db': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'organizations_db',
+        'USER': 'organizations_user',
+        'PASSWORD': 'password',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    },
+    
+    'sites_db': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'sites_db',
+        'USER': 'sites_user',
+        'PASSWORD': 'password',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    },
+    
+    'users_db': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'users_db',
+        'USER': 'users_user',
+        'PASSWORD': 'password',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    },
+}
+'''
+
+DATABASES = {
+    # General fallback database
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': ':memory:',  # Or use a file-based SQLite database
-    }
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.postgresql',
-    #     'NAME': 'gwiit_auth',  
-    #     'USER': 'postgres',
-    #     'PASSWORD': 'Burp33B33t',
-    #     'HOST': 'db',
-    #     'PORT': '5432',
-    # }
+        'NAME': BASE_DIR / 'default.sqlite3',
+    },
+    
+    'auth_db': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'auth_db.sqlite3',
+    },
+    
+    'authorization_db': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'authorization_db.sqlite3',
+    },
+
+    'organizations_db': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'authorization_db.sqlite3',
+    },
+
+    'sites_db': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'authorization_db.sqlite3',
+    },
+
+    'users_db': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'authorization_db.sqlite3',
+    },
 }
+
+DATABASE_ROUTERS = ['db_router.DatabaseRouter']
 
 # Redis Cache settings
 CACHES = {

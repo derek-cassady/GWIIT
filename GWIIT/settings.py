@@ -184,7 +184,7 @@ DATABASES = {
     },
 }
 
-DATABASE_ROUTERS = ['db_router.DatabaseRouter']
+DATABASE_ROUTERS = ['GWIIT.db_router.DatabaseRouter']
 
 # Redis Cache settings
 CACHES = {

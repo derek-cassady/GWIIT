@@ -189,20 +189,24 @@ DATABASE_ROUTERS = ['db_router.DatabaseRouter']
 # Redis Cache settings
 CACHES = {
     'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        # This references the Redis service
-        'LOCATION': 'redis://redis:6379/1',
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        # this references the Redis service
+        # adjust if needed
+        'LOCATION': 'redis://127.0.0.1:6379/1',
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         }
     }
 }
 
-# Use Redis as the session engine
+# use Redis as the session engine
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_CACHE_ALIAS = 'default'
 
-
+# set session expiry
+SESSION_COOKIE_AGE = 86400
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_SAVE_EVERY_REQUEST = True
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

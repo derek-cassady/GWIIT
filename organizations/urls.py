@@ -6,6 +6,7 @@ app_name = 'organizations'
 
 urlpatterns = [
     # Example route for organization listing
+    # empty string '' means this view handles 'organizations/' directly
     path('', views.organization_list, name='organization_list'),
     
     # Example route for viewing a specific organization

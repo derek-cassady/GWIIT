@@ -17,8 +17,111 @@
 <body>
     <header>
         <h1>Welcome to GWIIT</h1>
+        <!-- Menu Icon (for small screens) -->
+        <button class="menu-toggle" onclick="toggleMenu()">
+            <i class="ri-menu-line"></i>
+        </button>
+
+        {% comment %} Placeholder
+        <!-- App Logo -->
+        <div class="logo">
+            <img src="{% static 'img/logo.svg' %}" alt="Logo">
+        </div> {% endcomment %}
+
+        <!-- User Icon (small screens) / User Greeting (larger screens) -->
+        <div class="user-menu">
+            <span class="user-greeting">Hello, {{ user.first_name }}</span>
+            <button class="user-toggle" onclick="toggleUserMenu()">
+                <i class="ri-account-circle-line"></i>
+            </button>
+        </div>
     </header>
     
+    <!-- Sidebar Navigation (Hidden on Mobile) -->
+    <aside class="sidebar">
+        <nav>
+            <ul>
+                <li class="menu-item">
+                    <a href="#" onclick="toggleMenu('admin-menu')">
+                        <i class="ri-admin-line"></i> Admin <i class="ri-arrow-down-s-line"></i>
+                    </a>
+                    
+                    <ul id="admin-menu" class="submenu">
+                        <li><a href="{% url 'admin:index' %}">Admin Panel</a></li>
+                    </ul>
+                </li>
+            
+                <li class="menu-item">
+                    <a href="#" onclick="toggleMenu('authentication-menu')">
+                        <i class="ri-lock-line"></i> Authentication <i class="ri-arrow-down-s-line"></i>
+                    </a>
+                    
+                    <ul id="authentication-menu" class="submenu">
+                        <li><a href="{% url 'authentication:login' %}">Login</a></li>
+                        <li><a href="{% url 'authentication:logout' %}">Logout</a></li>
+                    </ul>
+                </li>
+            
+                <li class="menu-item">
+                    <a href="#" onclick="toggleMenu('authorization-menu')">
+                        <i class="ri-shield-line"></i> Authorization <i class="ri-arrow-down-s-line"></i>
+                    </a>
+                    
+                    <ul id="authorization-menu" class="submenu">
+                        <li><a href="{% url 'authorization:roles' %}">Roles & Permissions</a></li>
+                    </ul>
+                </li>
+            
+                <li class="menu-item">
+                    <a href="#" onclick="toggleMenu('organizations-menu')">
+                        <i class="ri-building-line"></i> Organizations <i class="ri-arrow-down-s-line"></i>
+                    </a>
+                    
+                    <ul id="organizations-menu" class="submenu">
+                        <li><a href="{% url 'organizations:organization_list' %}">All Organizations</a></li>
+                        <li><a href="{% url 'organizations:organization_detail' %}">Organization Details</a></li>
+                        <li><a href="{% url 'organizations:organization_types' %}">Organization Types</a></li>
+                    </ul>
+                </li>
+
+                <li class="menu-item">
+                    <a href="#" onclick="toggleMenu('sites-menu')">
+                        <i class="ri-map-pin-line"></i> Sites <i class="ri-arrow-down-s-line"></i>
+                    </a>
+                    
+                    <ul id="sites-menu" class="submenu">
+                        <li><a href="{% url 'sites:list' %}">Manage Sites</a></li>
+                    </ul>
+                </li>
+
+                <li class="menu-item">
+                    <a href="#" onclick="toggleMenu('users-menu')">
+                        <i class="ri-user-line"></i> Users <i class="ri-arrow-down-s-line"></i>
+                    </a>
+                    
+                    <ul id="users-menu" class="submenu">
+                        <li><a href="{% url 'users:list' %}">User Management</a></li>
+                        <li><a href="{% url 'users:roles' %}">Roles & Permissions</a></li>
+                        <li><a href="{% url 'users:logs' %}">Activity Logs</a></li>
+                    </ul>
+                </li>
+
+            </ul>
+        
+        </nav>
+    
+    </aside>
+
+    <!-- User Dropdown Menu -->
+    <div class="user-dropdown">
+        <ul>
+            <li><a href="{% url 'profile' %}">Profile</a></li>
+            <li><a href="{% url 'settings' %}">Settings</a></li>
+            <li><a href="{% url 'logout' %}">Logout</a></li>
+        </ul>
+    </div>
+
+
     <main>
         {% block content %} {% endblock %}
     </main>

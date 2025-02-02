@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    '_project_setup', # Project setup (for auto-loading test data)
     'authentication', #custom authentication model app
     'authorization', #custom authorization model app
     'organizations', #custom organizations model app
@@ -262,3 +263,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Customer User Model created in 'users' app for login
 AUTH_USER_MODEL = 'users.User'
+
+# Auto-load test data in development
+import _project_setup.management.commands.add_test_data_loader

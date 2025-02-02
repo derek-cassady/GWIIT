@@ -40,12 +40,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    '_project_setup', # Project setup (for auto-loading test data)
-    'authentication', #custom authentication model app
-    'authorization', #custom authorization model app
-    'organizations', #custom organizations model app
-    'sites', #custom organizations model app
-    'users', #custom user model app
+    'core', # project-wide utilities
+    'authentication', # custom authentication model app
+    'authorization', # custom authorization model app
+    'organizations', # custom organizations model app
+    'sites', # custom organizations model app
+    'users', # custom user model app
 ]
 
 MIDDLEWARE = [

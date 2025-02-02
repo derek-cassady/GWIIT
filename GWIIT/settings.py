@@ -265,4 +265,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'users.User'
 
 # Auto-load test data in development
-import _project_setup.management.commands.add_test_data_loader
+import core.management.commands.add_test_data_loader

@@ -87,7 +87,7 @@ class Organization(models.Model):
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True, 
-        related_name="organization_contact", 
+        related_name="contact_organization", 
         verbose_name=_("Contact")
         )
  

@@ -26,6 +26,8 @@ def create_superuser():
     Creates a Django superuser if one does not already exist.
     This ensures a valid user exists for `created_by` references in dummy data.
     """
+    call_command("migrate", database="users_db")
+
     User = get_user_model()
     if not User.objects.filter(is_superuser=True).exists():
         print("Creating a superuser for development...")

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Organization, Contact, OrganizationType
+from .models import Organization, OrganizationContact, OrganizationType
 
 # Register (add) 'Organization' model
 @admin.register(Organization)
@@ -30,7 +30,7 @@ class OrganizationTypeAdmin(admin.ModelAdmin):
     ordering = ('name',)
 
 # Register (add) 'Contact' model   
-@admin.register(Contact)
+@admin.register(OrganizationContact)
 class ContactAdmin(admin.ModelAdmin):
     # Display field(s) in the list view
     list_display = ['first_name', 'last_name', 'email', 'phone_number', 'role', 'organization', 'date_created']

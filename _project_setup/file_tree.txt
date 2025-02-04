@@ -80,6 +80,10 @@ GWIIT
 ┃ ┣ views.py
 ┃ ┗ wsgi.py
 ┣ organizations
+┃ ┣fixtures
+┃ ┃ ┣ organization_types.json
+┃ ┃ ┣ organizations.json
+┃ ┃ ┣ organization_contacts.json
 ┃ ┣ migrations
 ┃ ┃ ┣ __init__.py
 ┃ ┣ static

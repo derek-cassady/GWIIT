@@ -24,16 +24,7 @@ GWIIT
 ┃ ┣ README.md
 ┃ ┗ requirements.txt
 ┣ authentication
-┃ ┣ __pycache__
-┃ ┃ ┣ admin.cpython-312.pyc
-┃ ┃ ┣ apps.cpython-312.pyc
-┃ ┃ ┣ models.cpython-312.pyc
-┃ ┃ ┣ urls.cpython-312.pyc
-┃ ┃ ┣ views.cpython-312.pyc
-┃ ┃ ┗ __init__.cpython-312.pyc
 ┃ ┣ migrations
-┃ ┃ ┣ __pycache__
-┃ ┃ ┃ ┗ __init__.cpython-312.pyc
 ┃ ┃ ┗ __init__.py
 ┃ ┣ static
 ┃ ┃ ┗ authentication
@@ -53,16 +44,7 @@ GWIIT
 ┃ ┣ urls.py
 ┃ ┗ views.py
 ┣ authorization
-┃ ┣ __pycache__
-┃ ┃ ┣ admin.cpython-312.pyc
-┃ ┃ ┣ apps.cpython-312.pyc
-┃ ┃ ┣ models.cpython-312.pyc
-┃ ┃ ┣ urls.cpython-312.pyc
-┃ ┃ ┣ views.cpython-312.pyc
-┃ ┃ ┗ __init__.cpython-312.pyc
 ┃ ┣ migrations
-┃ ┃ ┣ __pycache__
-┃ ┃ ┃ ┗ __init__.cpython-312.pyc
 ┃ ┃ ┗ __init__.py
 ┃ ┣ static
 ┃ ┃ ┗ authorization
@@ -82,13 +64,6 @@ GWIIT
 ┃ ┣ urls.py
 ┃ ┗ views.py
 ┣ GWIIT
-┃ ┣ _pycache_
-┃ ┃ ┣ db_router.cpython-312.pyc
-┃ ┃ ┣ settings.cpython-312.pyc
-┃ ┃ ┣ urls.cpython-312.pyc
-┃ ┃ ┣ views.cpython-312.pyc
-┃ ┃ ┣ wsgi.cpython-312.pyc
-┃ ┃ ┗ __init__.cpython-312.pyc
 ┃ ┣ static
 ┃ ┃ ┣ css
 ┃ ┃ ┃ ┗ base.css
@@ -105,22 +80,8 @@ GWIIT
 ┃ ┣ views.py
 ┃ ┗ wsgi.py
 ┣ organizations
-┃ ┣ _pycache_
-┃ ┃ ┣ admin.cpython-312.pyc
-┃ ┃ ┣ apps.cpython-312.pyc
-┃ ┃ ┣ forms.cpython-312.pyc
-┃ ┃ ┣ models.cpython-312.pyc
-┃ ┃ ┣ urls.cpython-312.pyc
-┃ ┃ ┣ views.cpython-312.pyc
-┃ ┃ ┗ __init__.cpython-312.pyc
 ┃ ┣ migrations
-┃ ┃ ┣ _pycache_
-┃ ┃ ┃ ┣ 0001_initial.cpython-312.pyc
-┃ ┃ ┃ ┣ 0002_initial.cpython-312.pyc
-┃ ┃ ┃ ┗ __init__.cpython-312.pyc
 ┃ ┃ ┣ __init__.py
-┃ ┃ ┣ 0001_initial.py
-┃ ┃ ┗ 0002_initial.py
 ┃ ┣ static
 ┃ ┃ ┗ organizations
 ┃ ┃ ┃ ┣ css
@@ -142,21 +103,8 @@ GWIIT
 ┣ scripts
 ┃ ┣ reset_dev_env.py
 ┣ sites
-┃ ┣ _pycache_
-┃ ┃ ┣ admin.cpython-312.pyc
-┃ ┃ ┣ apps.cpython-312.pyc
-┃ ┃ ┣ models.cpython-312.pyc
-┃ ┃ ┣ urls.cpython-312.pyc
-┃ ┃ ┣ views.cpython-312.pyc
-┃ ┃ ┗ __init__.cpython-312.pyc
 ┃ ┣ migrations
-┃ ┃ ┣ _pycache_
-┃ ┃ ┃ ┣ 0001_initial.cpython-312.pyc
-┃ ┃ ┃ ┣ 0002_initial.cpython-312.pyc
-┃ ┃ ┃ ┗ __init__.cpython-312.pyc
 ┃ ┃ ┣ __init__.py
-┃ ┃ ┣ 0001_initial.py
-┃ ┃ ┗ 0002_initial.py
 ┃ ┣ templates
 ┃ ┃ ┣ site_detail.html
 ┃ ┃ ┗ site_list.html
@@ -169,21 +117,8 @@ GWIIT
 ┃ ┣ urls.py
 ┃ ┗ views.py
 ┣ users
-┃ ┣ _pycache_
-┃ ┃ ┣ admin.cpython-312.pyc
-┃ ┃ ┣ apps.cpython-312.pyc
-┃ ┃ ┣ forms.cpython-312.pyc
-┃ ┃ ┣ models.cpython-312.pyc
-┃ ┃ ┣ signals.cpython-312.pyc
-┃ ┃ ┣ urls.cpython-312.pyc
-┃ ┃ ┣ views.cpython-312.pyc
-┃ ┃ ┗ __init__.cpython-312.pyc
 ┃ ┣ migrations
-┃ ┃ ┣ __pycache__
-┃ ┃ ┃ ┣ 0001_initial.cpython-312.pyc
-┃ ┃ ┃ ┗ __init__.cpython-312.pyc
 ┃ ┃ ┣ __init__.py
-┃ ┃ ┗ 0001_initial.py
 ┃ ┣ static
 ┃ ┃ ┗ users
 ┃ ┃ ┃ ┣ css

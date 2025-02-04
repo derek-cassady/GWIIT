@@ -84,6 +84,7 @@ GWIIT
 ┃ ┃ ┣ organization_types.json
 ┃ ┃ ┣ organizations.json
 ┃ ┃ ┣ organization_contacts.json
+┃ ┃ ┗ README.md
 ┃ ┣ migrations
 ┃ ┃ ┣ __init__.py
 ┃ ┣ static

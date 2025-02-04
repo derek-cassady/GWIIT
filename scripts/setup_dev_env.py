@@ -44,8 +44,22 @@ def load_dummy_data():
     This ensures the app starts with test data.
     """
     print("Loading dummy data...")
-    # example file will add specifics as built for each app
-    call_command("loaddata", "dummy_data.json")
+    
+    # adds dummy data from fixture files
+    # must be loaded in order
+    fixture_files = [
+        "organizations/fixtures/organization_types.json",
+        "organizations/fixtures/organizations.json",
+        "organizations/fixtures/organization_contacts.json"
+    ]
+
+    for fixture in fixture_files:
+        if os.path.exists(fixture):
+            print(f"Loading fixture: {fixture}")
+            call_command("loaddata", fixture)
+        else:
+            print(f"Warning: {fixture} not found, skipping.")
+
     print("Dummy data loaded.")
 
 def start_server():

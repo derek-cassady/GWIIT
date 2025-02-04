@@ -1,0 +1,51 @@
+[
+    {
+        "_comment": "Django uses models.py to resolve relationships. Foreign keys (e.g., 'type': 1) reference PKs from related models. Ensure referenced models are loaded first."
+    },
+
+    {
+        "model": "sites.contact",
+        "pk": 1,
+        "fields": {
+            "site": 1,
+            "first_name": "Alice",
+            "last_name": "Brown",
+            "email": "alice.brown@techcorp.com",
+            "phone_number": "111-222-3333",
+            "address": "100 Main St, Springfield",
+            "role": "Office Manager",
+            "created_by": 1,
+            "modified_by": 1
+        }
+    },
+    {
+        "model": "sites.contact",
+        "pk": 2,
+        "fields": {
+            "site": 2,
+            "first_name": "Bob",
+            "last_name": "Johnson",
+            "email": "bob.johnson@techcorp.com",
+            "phone_number": "444-555-6666",
+            "address": "500 Logistics Ave, Springfield",
+            "role": "Warehouse Supervisor",
+            "created_by": 1,
+            "modified_by": 1
+        }
+    },
+    {
+        "model": "sites.contact",
+        "pk": 3,
+        "fields": {
+            "site": 3,
+            "first_name": "Charlie",
+            "last_name": "Davis",
+            "email": "charlie.davis@helpinghands.org",
+            "phone_number": "777-888-9999",
+            "address": "25 Wellness Rd, Springfield",
+            "role": "Clinic Director",
+            "created_by": 1,
+            "modified_by": 1
+        }
+    }
+]

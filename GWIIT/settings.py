@@ -170,17 +170,17 @@ DATABASES = {
 
     'organizations_db': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'authorization_db.sqlite3',
+        'NAME': BASE_DIR / 'organizations_db.sqlite3',
     },
 
     'sites_db': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'authorization_db.sqlite3',
+        'NAME': BASE_DIR / 'sites_db.sqlite3',
     },
 
     'users_db': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'authorization_db.sqlite3',
+        'NAME': BASE_DIR / 'users_db.sqlite3',
     },
 }
 

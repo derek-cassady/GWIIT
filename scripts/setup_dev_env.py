@@ -39,29 +39,39 @@ def create_superuser():
         print("Superuser already exists. Skipping creation.")
 
 def load_dummy_data():
+    
     """
-    Loads dummy data into the database after migrations.
-    This ensures the app starts with test data.
+    Loads dummy data from multiple fixture files into their respective databases.
+    This ensures each app's data is stored correctly in its assigned database.
     """
+    
     print("Loading dummy data...")
     
-    # adds dummy data from fixture files
+    # map to add dummy data from fixture files
     # must be loaded in order
-    fixture_files = [
-        "organizations/fixtures/organization_types.json",
-        "organizations/fixtures/organizations.json",
-        "organizations/fixtures/organization_contacts.json",
-        "sites/fixtures/sites.json",
-        "sites/fixtures/site_contacts.json",
-        "users/fixtures/users.json",
-    ]
+    fixture_files = {
+        "organizations_db": [
+            "organizations/fixtures/organization_types.json",
+            "organizations/fixtures/organizations.json",
+            "organizations/fixtures/organization_contacts.json",
+        ],
+        "sites_db": [
+            "sites/fixtures/sites.json",
+            "sites/fixtures/site_contacts.json",
+        ],
+        "users_db": [
+            "users/fixtures/users.json",
+        ]
+    }
 
-    for fixture in fixture_files:
-        if os.path.exists(fixture):
-            print(f"Loading fixture: {fixture}")
-            call_command("loaddata", fixture)
-        else:
-            print(f"Warning: {fixture} not found, skipping.")
+    # load each set of fixtures into specified database
+    for db_name, files in fixture_files.items():
+        for fixture in files:
+            if os.path.exists(fixture):
+                print(f"Loading fixture: {fixture} into database: {db_name}")
+                call_command("loaddata", fixture, database=db_name)
+            else:
+                print(f"Warning: {fixture} not found, skipping.")
 
     print("Dummy data loaded.")
 

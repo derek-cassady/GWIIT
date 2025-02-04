@@ -160,7 +160,7 @@ class ContactManager(models.Manager):
     def modified_by_user(self, user):
         return self.filter(modified_by=user)
 
-class Contact(models.Model):
+class OrganizationContact(models.Model):
     organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True, blank=True, related_name='contact_organization', verbose_name=_('contact_organization'))
     first_name = models.CharField(max_length=30, null=True, blank=True, verbose_name=_('First Name'))
     last_name = models.CharField(max_length=30, null=True, blank=True, verbose_name=_('Last Name'))

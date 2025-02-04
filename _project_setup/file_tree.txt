@@ -62,6 +62,23 @@ GWIIT
 ┃ ┣ tests.py
 ┃ ┣ urls.py
 ┃ ┗ views.py
+┣ core
+┃ ┣ management
+┃ ┃ ┣ commands
+┃ ┃ ┃ ┣ __init__.py
+┃ ┃ ┃ ┣ add_test_data_organizations.py
+┃ ┃ ┃ ┣ add_test_data_sites.py
+┃ ┃ ┃ ┣ add_test_data_users.py
+┃ ┃ ┃ ┣ add_test_data_loader.py
+┃ ┃ ┃ ┗ cleanup_test_data.py
+┃ ┃ ┗ __init__.py
+┃ ┣ migrations
+┃ ┃ ┣ __init__.py
+┃ ┣ admin.py
+┃ ┣ apps.py
+┃ ┣ models.py
+┃ ┣ tests.py
+┃ ┗ views.py
 ┣ GWIIT
 ┃ ┣ _pycache_
 ┃ ┣ static

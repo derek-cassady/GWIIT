@@ -1,0 +1,73 @@
+import os
+import sys
+import django
+from django.core.management import call_command
+from django.contrib.auth import get_user_model
+
+# set up Django environment
+# allows Django commands from this script
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "GWIIT.settings")
+django.setup()
+
+def run_migrations():
+    """
+    Runs Django migrations. If no migrations exist, it creates them first.
+    """
+    print("Applying database migrations...")
+    # generate migrations if needed
+    call_command("makemigrations")
+    # apply migrations
+    call_command("migrate")
+    print("Migrations complete.")
+
+def create_superuser():
+    """
+    Creates a Django superuser if one does not already exist.
+    This ensures a valid user exists for `created_by` references in dummy data.
+    """
+    User = get_user_model()
+    if not User.objects.filter(is_superuser=True).exists():
+        print("Creating a superuser for development...")
+        User.objects.create_superuser(
+            username="admin",
+            email="admin@example.com",
+            password="admin123"
+        )
+        print("Superuser created successfully.")
+    else:
+        print("Superuser already exists. Skipping creation.")
+
+def load_dummy_data():
+    """
+    Loads dummy data into the database after migrations.
+    This ensures the app starts with test data.
+    """
+    print("Loading dummy data...")
+    # example file will add specifics as built for each app
+    call_command("loaddata", "dummy_data.json")
+    print("Dummy data loaded.")
+
+def start_server():
+    """
+    Starts the Django development server automatically.
+    """
+    print("Starting the Django development server...")
+    os.system("python manage.py runserver")
+
+if __name__ == "__main__":
+    print("Setting up the development environment...")
+    
+    # run migrations
+    run_migrations()
+    
+    # ensure superuser exists
+    create_superuser()
+    
+    # load dummy data
+    load_dummy_data()
+
+    # start Django server
+    start_server()
+
+    print("Development environment is ready!")

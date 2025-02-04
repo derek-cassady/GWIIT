@@ -1,0 +1,51 @@
+[
+    {
+        "_comment": "Django uses models.py to resolve relationships. Foreign keys (e.g., 'type': 1) reference PKs from related models. Ensure referenced models are loaded first."
+    },
+    
+    {
+        "model": "organizations.organizationcontact",
+        "pk": 1,
+        "fields": {
+            "organization": 1,
+            "first_name": "John",
+            "last_name": "Doe",
+            "email": "john.doe@helpinghands.org",
+            "phone_number": "123-456-7890",
+            "address": "123 Charity Lane, Springfield",
+            "role": "Director",
+            "created_by": 1,
+            "modified_by": 1
+        }
+    },
+    {
+        "model": "organizations.organizationcontact",
+        "pk": 2,
+        "fields": {
+            "organization": 2,
+            "first_name": "Jane",
+            "last_name": "Smith",
+            "email": "jane.smith@techcorp.com",
+            "phone_number": "987-654-3210",
+            "address": "456 Tech Park, Silicon Valley",
+            "role": "CEO",
+            "created_by": 1,
+            "modified_by": 1
+        }
+    },
+    {
+        "model": "organizations.organizationcontact",
+        "pk": 3,
+        "fields": {
+            "organization": 3,
+            "first_name": "Mike",
+            "last_name": "Johnson",
+            "email": "mike.johnson@citygov.gov",
+            "phone_number": "555-555-5555",
+            "address": "789 Government Ave, Capitol City",
+            "role": "Mayor's Office",
+            "created_by": 1,
+            "modified_by": 1
+        }
+    }
+]

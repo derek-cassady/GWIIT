@@ -1,0 +1,30 @@
+[
+    {
+        "_comment": "Django uses models.py to resolve relationships. Foreign keys (e.g., 'type': 1) reference PKs from related models. Ensure referenced models are loaded first."
+    },
+    
+    {
+        "model": "organizations.organizationtype",
+        "pk": 1,
+        "fields": {
+            "name": "Non-Profit",
+            "description": "Organizations that operate for charitable purposes."
+        }
+    },
+    {
+        "model": "organizations.organizationtype",
+        "pk": 2,
+        "fields": {
+            "name": "Corporate",
+            "description": "For-profit business entities."
+        }
+    },
+    {
+        "model": "organizations.organizationtype",
+        "pk": 3,
+        "fields": {
+            "name": "Government",
+            "description": "Public sector organizations."
+        }
+    }
+]

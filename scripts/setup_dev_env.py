@@ -50,9 +50,10 @@ def load_dummy_data():
     fixture_files = [
         "organizations/fixtures/organization_types.json",
         "organizations/fixtures/organizations.json",
-        "organizations/fixtures/organization_contacts.json"
+        "organizations/fixtures/organization_contacts.json",
         "sites/fixtures/sites.json",
-        "sites/fixtures/site_contacts.json"
+        "sites/fixtures/site_contacts.json",
+        "users/fixtures/users.json",
     ]
 
     for fixture in fixture_files:

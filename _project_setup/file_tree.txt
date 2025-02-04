@@ -80,7 +80,7 @@ GWIIT
 ┃ ┣ views.py
 ┃ ┗ wsgi.py
 ┣ organizations
-┃ ┣fixtures
+┃ ┣ fixtures
 ┃ ┃ ┣ organization_types.json
 ┃ ┃ ┣ organizations.json
 ┃ ┃ ┣ organization_contacts.json
@@ -108,7 +108,7 @@ GWIIT
 ┣ scripts
 ┃ ┣ reset_dev_env.py
 ┣ sites
-┃ ┣fixtures
+┃ ┣ fixtures
 ┃ ┃ ┣ site_contacts.json
 ┃ ┃ ┣ sites.json
 ┃ ┃ ┗ README.md
@@ -126,6 +126,9 @@ GWIIT
 ┃ ┣ urls.py
 ┃ ┗ views.py
 ┣ users
+┃ ┣ fixtures
+┃ ┃ ┣ users.json
+┃ ┃ ┗ README.md
 ┃ ┣ migrations
 ┃ ┃ ┣ __init__.py
 ┃ ┣ static

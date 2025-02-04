@@ -1,0 +1,75 @@
+[
+    {
+        "_comment": "Django uses models.py to resolve relationships. Foreign keys (e.g., 'type': 1) reference PKs from related models. Ensure referenced models are loaded first."
+    },
+    
+    {
+        "model": "users.user",
+        "pk": 1,
+        "fields": {
+            "email": "admin@example.com",
+            "username": "admin",
+            "first_name": "Admin",
+            "last_name": "User",
+            "badge_barcode": "123456",
+            "badge_rfid": "ABCDEF",
+            "organization": null,
+            "site": null,
+            "phone_number": "000-000-0000",
+            "mfa_preference": "none",
+            "is_active": true,
+            "is_staff": true,
+            "created_by": 1,
+            "modified_by": 1,
+            "date_joined": "2024-01-01T12:00:00Z",
+            "date_created": "2024-01-01T12:00:00Z",
+            "last_modified": "2024-01-01T12:00:00Z"
+        }
+    },
+    {
+        "model": "users.user",
+        "pk": 2,
+        "fields": {
+            "email": "user1@techcorp.com",
+            "username": "user1",
+            "first_name": "John",
+            "last_name": "Doe",
+            "badge_barcode": "654321",
+            "badge_rfid": "FEDCBA",
+            "organization": 2,
+            "site": 1,
+            "phone_number": "111-222-3333",
+            "mfa_preference": "google_authenticator",
+            "is_active": true,
+            "is_staff": false,
+            "created_by": 1,
+            "modified_by": 1,
+            "date_joined": "2024-02-01T10:30:00Z",
+            "date_created": "2024-02-01T10:30:00Z",
+            "last_modified": "2024-02-01T10:30:00Z"
+        }
+    },
+    {
+        "model": "users.user",
+        "pk": 3,
+        "fields": {
+            "email": "user2@helpinghands.org",
+            "username": "user2",
+            "first_name": "Jane",
+            "last_name": "Smith",
+            "badge_barcode": "987654",
+            "badge_rfid": "ZYXWVU",
+            "organization": 1,
+            "site": 3,
+            "phone_number": "444-555-6666",
+            "mfa_preference": "sms",
+            "is_active": true,
+            "is_staff": false,
+            "created_by": 1,
+            "modified_by": 1,
+            "date_joined": "2024-03-01T08:15:00Z",
+            "date_created": "2024-03-01T08:15:00Z",
+            "last_modified": "2024-03-01T08:15:00Z"
+        }
+    }
+]

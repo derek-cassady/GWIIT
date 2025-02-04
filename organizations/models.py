@@ -83,7 +83,7 @@ class Organization(models.Model):
     
     # Reference the Contact model, Allow the organization to persist if the contact is deleted
     contact = models.OneToOneField(
-        'organizations.Contact', 
+        'organizations.OrganizationContact', 
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True, 

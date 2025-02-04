@@ -139,6 +139,8 @@ GWIIT
 ┃ ┣ tests.py
 ┃ ┣ urls.py
 ┃ ┗ views.py
+┣ scripts
+┃ ┣ reset_dev_env.py
 ┣ sites
 ┃ ┣ _pycache_
 ┃ ┃ ┣ admin.cpython-312.pyc

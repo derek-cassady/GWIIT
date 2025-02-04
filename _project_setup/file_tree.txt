@@ -108,6 +108,10 @@ GWIIT
 ┣ scripts
 ┃ ┣ reset_dev_env.py
 ┣ sites
+┃ ┣fixtures
+┃ ┃ ┣ site_contacts.json
+┃ ┃ ┣ sites.json
+┃ ┃ ┗ README.md
 ┃ ┣ migrations
 ┃ ┃ ┣ __init__.py
 ┃ ┣ templates

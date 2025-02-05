@@ -211,18 +211,36 @@ SESSION_SAVE_EVERY_REQUEST = True
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
+# ==========================
+# PASSWORD RULES SUMMARY:
+# 1. Minimum 16 characters.
+# 2. Must contain at least one uppercase letter.
+# 3. Must contain at least one lowercase letter.
+# 4. Must contain at least one digit.
+# 5. Must contain at least one special character (@, #, $, etc.).
+# 6. Cannot be too similar to user attributes.
+# 7. Cannot be a common password.
+# 8. Cannot be entirely numeric.
+# ==========================
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'OPTIONS': {'max_similarity': 0.5},
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {'min_length': 16},
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+    {
+        # custom validator
+        'NAME': 'users.validators.CustomPasswordValidator',
     },
 ]
 

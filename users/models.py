@@ -5,6 +5,8 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.core.mail import send_mail
 from passlib.pwd import genword
+import random
+import string
 
 MFA_CHOICES = [
     ('none', _('None')),
@@ -27,8 +29,20 @@ class UserManager(models.Manager):
         return email.lower().strip() if email else None
 
     # uses passlib to genereate a strong password.
+    # generates password to meet all validator requirements.
     def generate_secure_password(self, length=16):
-        return genword(length=length)
+        while True:
+            
+            password=genword(length=length)
+
+           # Check if password meets all rules
+            if (
+                any(c.isupper() for c in password) and
+                any(c.islower() for c in password) and
+                any(c.isdigit() for c in password) and
+                any(c in string.punctuation for c in password)
+            ):
+                return password
     
     """
     Creates and returns a regular user. 

@@ -5,6 +5,7 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.core.mail import send_mail
 from passlib.pwd import genword
+import importlib.resources
 import random
 import string
 

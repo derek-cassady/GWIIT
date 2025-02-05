@@ -10,3 +10,4 @@ redis==5.0.8
 sqlparse==0.5.1
 tzdata==2024.1
 passlib==1.7.4
+setuptools>=65.0.0

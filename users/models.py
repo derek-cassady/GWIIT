@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.contrib.auth.base_user import BaseUserManager
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth import get_user_model
@@ -19,6 +20,11 @@ class UserManager(models.Manager):
     Custom manager for User model that provides helper methods
     to create regular users and superusers.
     """
+    # manually normalizes email if not caught by front end checks
+    def normalize_email(self, email):
+        """Manually normalize email if BaseUserManager is not used."""
+        return email.lower().strip() if email else None
+
     
     def create_user(self, email, password=None, **extra_fields):
         """Creates and returns a regular user with an email and password."""
@@ -35,7 +41,26 @@ class UserManager(models.Manager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
+        if extra_fields.get('is_staff') is not True or extra_fields.get('is_superuser') is not True:
+            raise ValueError("Superuser must have is_staff=True and is_superuser=True.")
+
         return self.create_user(email, password, **extra_fields)
+    
+    """
+    Allows users to log in using email, username, badge barcode, or badge RFID,
+    but ignores inactive users.
+    """
+        
+    def get_by_natural_key(self, identifier):
+
+        return self.get(
+            models.Q(is_active=True) & (
+                models.Q(email__iexact=identifier) |
+                models.Q(username__iexact=identifier) |
+                models.Q(badge_barcode__iexact=identifier) |
+                models.Q(badge_rfid__iexact=identifier)
+            )
+        )
     
     """
     - Set of query methods to filter users based on:
@@ -48,6 +73,23 @@ class UserManager(models.Manager):
     
     methods allow for flexible querying in both Django admin and applogic.
     """
+
+    # returns users filtered by email
+    def by_email(self, email):
+        return self.filter(email=email)
+
+    # returns users filtered by username.
+    def by_username(self, username):
+        return self.filter(username=username)
+
+    # returns users filtered by badge barcode.
+    def by_badge_barcode(self, barcode):
+        return self.filter(badge_barcode=barcode)
+
+    # returns users filtered by badge RFID.
+    def by_badge_rfid(self, rfid):
+        return self.filter(badge_rfid=rfid)
+    
     # Returns all active users
     def active(self):
         return self.filter(is_active=True)

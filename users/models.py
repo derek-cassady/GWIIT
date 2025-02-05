@@ -1,10 +1,10 @@
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-from django.contrib.auth.base_user import BaseUserManager
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
+from django.core.mail import send_mail
+from passlib.pwd import genword
 
 MFA_CHOICES = [
     ('none', _('None')),
@@ -14,37 +14,78 @@ MFA_CHOICES = [
     ('static_otp', _('Static OTP')),
 ]
 
+"""
+Custom manager for User model that provides helper methods
+to create regular users and superusers.
+"""
+
 class UserManager(models.Manager):
 
-    """
-    Custom manager for User model that provides helper methods
-    to create regular users and superusers.
-    """
     # manually normalizes email if not caught by front end checks
     def normalize_email(self, email):
         """Manually normalize email if BaseUserManager is not used."""
         return email.lower().strip() if email else None
 
+    # uses passlib to genereate a strong password.
+    def generate_secure_password(self, length=16):
+        return genword(length=length)
     
+    """
+    Creates and returns a regular user. 
+    Supports login via email, username, badge barcode, or badge RFID.
+    Password is randomly generated.
+    """
+
     def create_user(self, email, password=None, **extra_fields):
-        """Creates and returns a regular user with an email and password."""
+        
+        username = extra_fields.get("username")
+        badge_barcode = extra_fields.get("badge_barcode")
+        badge_rfid = extra_fields.get("badge_rfid")
+        
+        # Ensure at least one login method is provided, with email required
         if not email:
-            raise ValueError("The Email field must be set")
-        email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
+            raise ValueError("The Email field must be set.")
+        if not any([username, badge_barcode, badge_rfid]):
+            raise ValueError("At least one additional login identifier (username, badge) must be set.")
+
+        # Normalize email if provided
+        if email:
+            extra_fields["email"] = self.normalize_email(email)
+
+        # Generate a secure password
+        password = self.generate_secure_password()
+
+        user = self.model(**extra_fields)
+        # Django will hash the password when handing to DB
         user.set_password(password)
         user.save(using=self._db)
-        return user
 
-    def create_superuser(self, email, password=None, **extra_fields):
-        """Creates and returns a superuser with all permissions."""
+        # Send credentials via email (DJango console mail for development)
+        send_mail(
+            subject="Your Account Credentials",
+            message=f"Your account has been created.\nEmail: {user.email}\nTemporary Password: {password}",
+            # Placeholder; update later for production
+            from_email="noreply@example.com",
+            recipient_list=[user.email],
+            # Prevents errors if email backend isn't configured
+            fail_silently=True,
+        )
+        return user
+    
+    """
+    Creates and returns a superuser. 
+    Supports login via email, username, badge barcode, or badge RFID.
+    The password is always randomly generated.
+    """
+    def create_superuser(self, email, **extra_fields):
+        
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
         if extra_fields.get('is_staff') is not True or extra_fields.get('is_superuser') is not True:
             raise ValueError("Superuser must have is_staff=True and is_superuser=True.")
 
-        return self.create_user(email, password, **extra_fields)
+        return self.create_user(email, **extra_fields)
     
     """
     Allows users to log in using email, username, badge barcode, or badge RFID,
@@ -189,7 +230,7 @@ class UserManager(models.Manager):
         return self.filter(date_joined__gte=last_30_days, organization=organization)
 
 class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(unique=True, db_index=True, verbose_name=_('Email Address'))
+    email = models.EmailField(unique=True, blank=False, null=False, db_index=True, verbose_name=_('Email Address'))
     username = models.CharField(max_length=30, unique=True, null=True, blank=True, db_index=True, verbose_name=_('Username'))
     first_name = models.CharField(max_length=30, null=True, blank=True, db_index=True, verbose_name=_('First Name'))
     last_name = models.CharField(max_length=30, null=True, blank=True, db_index=True, verbose_name=_('Last Name'))
@@ -215,7 +256,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+    REQUIRED_FIELDS = []
 
     class Meta:
         ordering = ['email', 'username', 'first_name', 'last_name', 'badge_barcode', 'badge_rfid']

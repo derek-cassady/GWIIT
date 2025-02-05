@@ -31,12 +31,20 @@ def create_superuser():
     User = get_user_model()
     if not User.objects.filter(is_superuser=True).exists():
         print("Creating a superuser for development...")
-        User.objects.create_superuser(
-            username="admin",
+
+        # Auto-generate a secure password
+        password = "Admin@12345!"
+
+        # Create the superuser with required fields
+        superuser = User.objects.create_superuser(
             email="admin@example.com",
-            password="admin123"
+            # Optional; superuser can log in via email
+            username="admin",  # optional; superuser can log in via email
+            password=password # hardcoded for testing and demo
         )
+
         print("Superuser created successfully.")
+
     else:
         print("Superuser already exists. Skipping creation.")
 

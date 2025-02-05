@@ -14,6 +14,40 @@ MFA_CHOICES = [
 ]
 
 class UserManager(models.Manager):
+
+    """
+    Custom manager for User model that provides helper methods
+    to create regular users and superusers.
+    """
+    
+    def create_user(self, email, password=None, **extra_fields):
+        """Creates and returns a regular user with an email and password."""
+        if not email:
+            raise ValueError("The Email field must be set")
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        """Creates and returns a superuser with all permissions."""
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        return self.create_user(email, password, **extra_fields)
+    
+    """
+    - Set of query methods to filter users based on:
+    - Active/inactive status.
+    - Name (first, last, full name).
+    - Organization and site associations.
+    - Multi-factor authentication (MFA) preferences.
+    - Badge-based identification.
+    - Staff users and recently joined users.
+    
+    methods allow for flexible querying in both Django admin and applogic.
+    """
     # Returns all active users
     def active(self):
         return self.filter(is_active=True)

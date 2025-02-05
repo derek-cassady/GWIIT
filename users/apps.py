@@ -6,6 +6,10 @@ class UsersConfig(AppConfig):
     name = 'users'
     verbose_name = _('Users')
 
-    # Import signals when the app is ready
+# class UsersConfig(AppConfig):
+#     default_auto_field = "django.db.models.BigAutoField"
+#     name = "users"
+
+    # Ensure signals are loaded
     def ready(self):
         import users.signals

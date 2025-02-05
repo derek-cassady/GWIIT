@@ -1,8 +1,19 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_migrate
 from django.dispatch import receiver
 from django.core.mail import send_mail
 from .models import User
 from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.hashers import make_password
+
+
+# Hashes plaintext passwords from fixture after migrations.
+@receiver(post_migrate)
+def hash_fixture_passwords(sender, **kwargs):
+    if sender.name == "users":
+        for user in User.objects.all():
+            if not user.password.startswith("pbkdf2_sha256$"):
+                user.password = make_password(user.password)
+                user.save()
 
 # Decorator listens for the post_save signal on the User model
 @receiver(post_save, sender=User)

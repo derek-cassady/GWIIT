@@ -17,6 +17,8 @@ import sys
 # script is inside "scripts/" and needs to go one level up
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
+DB_GLOB = os.path.join(PROJECT_ROOT, "*.sqlite3")
+
 # define the database file path (SQLite for dev, testing, and demo)
 DB_PATH = os.path.join(PROJECT_ROOT, "db.sqlite3")
 
@@ -110,3 +112,6 @@ if __name__ == "__main__":
     delete_migrations()
     delete_pycache()
     print("Development environment reset complete.")
+
+# Ensure the script exits cleanly
+sys.exit(0)

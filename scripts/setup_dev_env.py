@@ -124,23 +124,6 @@ def load_dummy_data():
     print("All dummy data loaded successfully.")
 
 """
-Starts the Django development server.
-    - Ensures that the server starts automatically after setup.
-    - Uses `subprocess.run()` to launch `manage.py runserver` in a controlled manner.
-        - Calls `python manage.py runserver` as a subprocess.
-        - If `runserver` crashes, `subprocess.run()` will raise an exception.
-"""
-
-def start_server():
-
-    print("Starting the Django development server...")
-
-    try:
-        subprocess.run(["python", "manage.py", "runserver"], check=True)
-    except subprocess.CalledProcessError as e:
-        print(f"Error: Failed to start server.\n{e}")
-
-"""
 Main execution flow for setting up the development environment.
 - Apply database migrations.
 - Ensure a superuser exists.
@@ -160,7 +143,7 @@ if __name__ == "__main__":
     # load dummy data into the respective databases
     load_dummy_data()
 
-    # start Django server
-    start_server()
-
     print("Development environment is ready!")
+
+# Ensure the script exits cleanly
+sys.exit(0)

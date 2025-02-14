@@ -10,6 +10,10 @@ class UsersConfig(AppConfig):
 #     default_auto_field = "django.db.models.BigAutoField"
 #     name = "users"
 
-    # Ensure signals are loaded
+    # # Ensure signals are loaded
+    # def ready(self):
+    #     import users.signals
+
     def ready(self):
-        import users.signals
+        print("DEBUG: AppConfig ready() running for users app")
+        print("DEBUG: Users app initialization complete.")

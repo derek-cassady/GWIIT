@@ -5,3 +5,7 @@ class SitesConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'sites'
     verbose_name = _('Sites')
+
+    def ready(self):
+        print("DEBUG: AppConfig ready() running for sites app")
+        print("DEBUG: sites app initialization complete.")

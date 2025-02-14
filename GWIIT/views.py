@@ -1,3 +1,4 @@
+print("DEBUG: Starting to load views for GWIIT app...")
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout
 
@@ -29,3 +30,5 @@ def sites_view(request):
 def users_view(request):
     """Placeholder for user management page."""
     return render(request, 'users/user_list.html')
+
+print("DEBUG: Finished loading views for GWIIT app.")

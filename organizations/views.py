@@ -1,3 +1,5 @@
+print("DEBUG: Starting to load views for organizations app...")
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.http import HttpResponseRedirect
@@ -122,3 +124,5 @@ def organization_detail(request, pk):
         'organization': organization,
         'contacts': contacts,
     })
+
+print("DEBUG: Finished loading views for organizations app.")

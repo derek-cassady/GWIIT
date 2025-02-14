@@ -1,3 +1,5 @@
+print("DEBUG: Starting to load views for sites app...")
+
 from django.shortcuts import render
 from .models import Site  # Make sure you have a Site model in your app
 
@@ -18,3 +20,5 @@ def site_detail(request):
     return render(request, 'sites/site_detail.html', {
         'sites': sites,
     })
+
+print("DEBUG: Finished loading views for sites app.")

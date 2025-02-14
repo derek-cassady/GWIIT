@@ -1,3 +1,4 @@
+print("DEBUG: Starting to load views for users app...")
 from django.shortcuts import render, redirect
 from django.views.generic import TemplateView, UpdateView, ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -22,3 +23,5 @@ def user_profile(request):
 def user_management(request):
     users = User.objects.all()
     return render(request, 'users/user_management.html', {'users': users})
+
+print("DEBUG: Finished loading views for users app.")

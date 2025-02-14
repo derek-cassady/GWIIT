@@ -1,3 +1,4 @@
+print("DEBUG: Starting to load views for authentication app...")
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponse
@@ -20,3 +21,5 @@ def logout_view(request):
     logout(request)
     # Redirect to the login page after logout
     return redirect('authentication:login')
+
+print("DEBUG: Finished loading views for authentication app.")

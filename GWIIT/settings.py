@@ -11,7 +11,11 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import atexit
+import time
+import subprocess
 
+print(f"DEBUG: settings.py loaded at {time.time()}")
 # Anchor point to define relative paths for resources like templates, static files, and database files.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -30,6 +34,8 @@ DEBUG = True
 #CIDR ranges (192.168.1.0/24) are not supported
 ALLOWED_HOSTS = ['*']
 
+# Customer User Model created in 'users' app for login
+AUTH_USER_MODEL = 'users.User'
 
 # Application definition
 
@@ -40,11 +46,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'users', # custom user model app
     'authentication', # custom authentication model app
     'authorization', # custom authorization model app
     'organizations', # custom organizations model app
-    'sites', # custom organizations model app
-    'users', # custom user model app
+    'sites', # custom sites model app
 ]
 
 MIDDLEWARE = [
@@ -277,6 +283,3 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Customer User Model created in 'users' app for login
-AUTH_USER_MODEL = 'users.User'

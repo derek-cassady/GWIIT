@@ -1,3 +1,5 @@
+print("DEBUG: Starting to load URLs for organizations app...")
+
 from django.urls import path
 # Import views from the current app
 from . import views
@@ -27,3 +29,5 @@ urlpatterns = [
     # OrganizationType delete route
     path('types/delete/<int:pk>/', views.delete_organization_type, name='delete_organization_type'),
 ]
+
+print("DEBUG: Finished loading URLs for organizations app.")

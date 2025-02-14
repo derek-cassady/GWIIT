@@ -1,3 +1,4 @@
+print("DEBUG: Starting to load URLs for sites app...")
 from django.urls import path
 from . import views  # Import views from the current app
 
@@ -9,3 +10,5 @@ urlpatterns = [
     # Example route for viewing a specific site
     path('<int:pk>/', views.site_detail, name='site_detail'),
 ]
+
+print("DEBUG: Finished loading URLs for sites app.")

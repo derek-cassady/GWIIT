@@ -1,3 +1,4 @@
+print("DEBUG: Starting to load URLs for authorization app...")
 from django.urls import path
 from . import views  # Import your custom views module
 
@@ -9,3 +10,5 @@ urlpatterns = [
     # Route for managing permissions
     path('permissions/', views.permissions_view, name='permissions'),
 ]
+
+print("DEBUG: Finished loading URLs for authorization app.")

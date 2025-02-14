@@ -1,3 +1,4 @@
+print("DEBUG: Starting to load URLs for GWIIT app...")
 """
 URL configuration for GWIIT project.
 
@@ -27,3 +28,5 @@ urlpatterns = [
     path('users/', include(('users.urls', 'users'), namespace='users')),
     path('', homepage, name='homepage'),
 ]
+
+print("DEBUG: Finished loading URLs for GWIIT app.")

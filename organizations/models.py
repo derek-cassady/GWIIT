@@ -1,3 +1,4 @@
+print("DEBUG: Starting to load models for organizations app...")
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.conf import settings
@@ -189,4 +190,8 @@ class OrganizationContact(models.Model):
         return f"{self.first_name} {self.last_name}".strip()
     
     def __str__(self):
-        return f"{self.name} ({self.organization.name if self.organization else _('No Organization')})"    
+        return f"{self.name} ({self.organization.name if self.organization else _('No Organization')})"   
+
+
+
+    print("DEBUG: Finished loading models for organizations app.") 

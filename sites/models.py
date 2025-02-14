@@ -1,3 +1,4 @@
+print("DEBUG: Starting to load models for sites app...")
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.conf import settings
@@ -114,3 +115,6 @@ class Contact(models.Model):
     
     def __str__(self):
         return f"{self.name} ({self.site.name if self.site else _('No Site')})"
+    
+
+print("DEBUG: Finished loading models for sites app.")

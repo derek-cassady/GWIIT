@@ -57,27 +57,6 @@ def run_setup():
             os.remove(lock_file)
 
 """
-Ensures the development environment resets on server shutdown.
-    - Prevents old data from lingering between test sessions.
-    - Automatically removes databases, migrations, and cached files.
-        - Runs `reset_dev_env.py` when the script exits.
-        - Prints a message to confirm cleanup is running.
-"""
-# def cleanup():
-#     print("Server stopping... Running cleanup script.")
-#     subprocess.run(["python", RESET_SCRIPT, "--shutdown"], check=True)
-
-# from django.core.management.commands.runserver import Command as RunserverCommand
-
-# class CustomRunserverCommand(RunserverCommand):
-#     def handle(self, *args, **options):
-#         try:
-#             super().handle(*args, **options)
-#         finally:
-#             print("DEBUG: Django server shutting down, calling cleanup...")
-#             cleanup()
-
-"""
 Run administrative tasks.
     - Ensures the correct Django settings module is set.
     - Calls Django's command-line interface (manage.py commands).
@@ -127,11 +106,7 @@ def main():
         print(f"ERROR: Exception occurred in manage.py: {e}")
         sys.exit(1)
 
-    # finally:
-    #     # if "runserver" in sys.argv:
-    #         print("Server shutting down... Running cleanup script.")
-    #         # cleanup()
-
+#DEBUG: execution complete
 print("DEBUG: manage.py execution complete.")    
 
 if __name__ == '__main__':

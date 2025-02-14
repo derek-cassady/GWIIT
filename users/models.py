@@ -1,3 +1,5 @@
+print("DEBUG: Starting to load models for users app...")
+
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.utils import timezone
@@ -32,11 +34,13 @@ class UserManager(models.Manager):
     # uses passlib to genereate a strong password.
     # generates password to meet all validator requirements.
     def generate_secure_password(self, length=16):
-        while True:
-            
-            password=genword(length=length)
+        
+        max_attempts = 10  # Prevents infinite loop
+        
+        for _ in range(max_attempts):
+            password = genword(length=length)  # Generate password
 
-           # Check if password meets all rules
+            # Check if password meets all rules
             if (
                 any(c.isupper() for c in password) and
                 any(c.islower() for c in password) and
@@ -44,7 +48,8 @@ class UserManager(models.Manager):
                 any(c in string.punctuation for c in password)
             ):
                 return password
-    
+        raise ValueError("Failed to generate a secure password after multiple attempts.")
+
     """
     Creates and returns a regular user. 
     Supports login via email, username, badge barcode, or badge RFID.
@@ -295,3 +300,5 @@ class User(AbstractBaseUser, PermissionsMixin):
         organization_name = self.organization.name if self.organization else _('No Organization')
         site_name = self.site.name if self.site else _('No Site')
         return f"{self.email} ({organization_name} - {site_name})"
+    
+print("DEBUG: Finished loading models for users app.")

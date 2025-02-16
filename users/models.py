@@ -1,6 +1,6 @@
 print("DEBUG: Starting to load models for users app...")
 
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.contrib.auth.models import AbstractBaseUser
 from django.db import models
 from django.utils import timezone
 from django.conf import settings

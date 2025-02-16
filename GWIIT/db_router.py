@@ -13,7 +13,7 @@ class DatabaseRouter:
         
         # authentication DB
         if model._meta.app_label == 'authentication':
-            return 'auth_db'
+            return 'authentication_db'
         
         # authorization DB
         elif model._meta.app_label == 'authorization':

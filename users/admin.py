@@ -1,16 +1,8 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import User
-from .forms import CustomUserCreationForm, CustomUserChangeForm
 from django.utils.translation import gettext_lazy as _
 
-class CustomUserAdmin(BaseUserAdmin):
-    # Use the custom form for adding users
-    add_form = CustomUserCreationForm
-
-    # Use the custom form for changing (editing) users
-    form = CustomUserChangeForm
-
+class CustomUserAdmin(admin.ModelAdmin):  # Changed from BaseUserAdmin to ModelAdmin
     # Fields to display in the list view
     list_display = ['email', 'username', 'first_name', 'last_name', 'is_active', 'is_staff']
     
@@ -27,7 +19,7 @@ class CustomUserAdmin(BaseUserAdmin):
     fieldsets = (
         (None, {'fields': ('email', 'username', 'password')}),
         (_('Personal info'), {'fields': ('first_name', 'last_name', 'phone_number', 'badge_barcode', 'badge_rfid')}),
-        (_('Permissions'), {'fields': ('is_active', 'is_staff')}),  # REMOVED 'groups' and 'user_permissions'
+        (_('Permissions'), {'fields': ('is_active', 'is_staff')}),  # No more groups/user_permissions
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
         (_('MFA Preferences'), {'fields': ('mfa_preference', 'mfa_secret')}),
         (_('Organization Info'), {'fields': ('organization', 'site')}),
@@ -41,7 +33,7 @@ class CustomUserAdmin(BaseUserAdmin):
         }),
     )
 
-    # REMOVED groups and user_permissions from filter_horizontal
+    # No need for groups or permissions
     filter_horizontal = ()
 
     # Read-only fields

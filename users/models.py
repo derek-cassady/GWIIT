@@ -263,6 +263,7 @@ class User(AbstractBaseUser):
     mfa_secret = models.CharField(max_length=100, null=True, blank=True, verbose_name=_('MFA Secret'))  # For Google Authenticator
     static_otp = models.TextField(null=True, blank=True, verbose_name=_('Static OTP'))  # Comma-separated static OTPs
     is_active = models.BooleanField(default=True, verbose_name=_('Is Active'))
+    is_superuser = models.BooleanField(default=False, verbose_name=_('Is Superuser'))
     is_staff = models.BooleanField(default=False, verbose_name=_('Is Staff'))
     last_login = models.DateTimeField(null=True, blank=True, verbose_name=_('Last Login'))
 

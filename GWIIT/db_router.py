@@ -55,7 +55,7 @@ class DatabaseRouter:
     def allow_relation(self, obj1, obj2, **hints):
         
         #  database names that are valid
-        db_set = {'auth_db', 'authorization_db', 'organizations_db', 'sites_db', 'users_db', 'default'}
+        db_set = {'authentication_db', 'authorization_db', 'organizations_db', 'sites_db', 'users_db', 'default'}
         
         # checks if DB for object 1 and then 2 are in the "db_set"
         if obj1._state.db in db_set and obj2._state.db in db_set:
@@ -76,7 +76,7 @@ class DatabaseRouter:
     def allow_migrate(self, db, app_label, model_name=None, **hints):
         
         app_db_mapping = {
-        'authentication': 'auth_db',
+        'authentication': 'authentication_db',
         'authorization': 'authorization_db',
         'organizations': 'organizations_db',
         'sites': 'sites_db',

@@ -27,7 +27,7 @@ class CustomUserAdmin(BaseUserAdmin):
     fieldsets = (
         (None, {'fields': ('email', 'username', 'password')}),
         (_('Personal info'), {'fields': ('first_name', 'last_name', 'phone_number', 'badge_barcode', 'badge_rfid')}),
-        (_('Permissions'), {'fields': ('is_active', 'is_staff', 'groups', 'user_permissions')}),
+        (_('Permissions'), {'fields': ('is_active', 'is_staff')}),  # REMOVED 'groups' and 'user_permissions'
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
         (_('MFA Preferences'), {'fields': ('mfa_preference', 'mfa_secret')}),
         (_('Organization Info'), {'fields': ('organization', 'site')}),
@@ -41,8 +41,8 @@ class CustomUserAdmin(BaseUserAdmin):
         }),
     )
 
-    # Groups and permissions (using a better UI widget)
-    filter_horizontal = ('groups', 'user_permissions',)
+    # REMOVED groups and user_permissions from filter_horizontal
+    filter_horizontal = ()
 
     # Read-only fields
     readonly_fields = ['date_joined', 'last_login']

@@ -249,7 +249,7 @@ class UserManager(models.Manager):
         last_30_days = timezone.now() - timezone.timedelta(days=30)
         return self.filter(date_joined__gte=last_30_days, organization=organization)
 
-class User(AbstractBaseUser, PermissionsMixin):
+class User(AbstractBaseUser):
     email = models.EmailField(unique=True, blank=False, null=False, db_index=True, verbose_name=_('Email Address'))
     username = models.CharField(max_length=30, unique=True, null=True, blank=True, db_index=True, verbose_name=_('Username'))
     first_name = models.CharField(max_length=30, null=True, blank=True, db_index=True, verbose_name=_('First Name'))

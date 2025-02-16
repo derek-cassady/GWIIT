@@ -164,11 +164,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'default.sqlite3',
     },
     
-    'auth_db': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'auth_db.sqlite3',
-    },
-    
     'authentication_db': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'authentication_db.sqlite3',

@@ -22,7 +22,6 @@ GWIIT
 ┃ ┣ dockerfile
 ┃ ┣ file_tree.txt
 ┃ ┣ README.md
-┃ ┗ requirements.txt
 ┣ authentication
 ┃ ┣ migrations
 ┃ ┃ ┗ __init__.py
@@ -106,7 +105,12 @@ GWIIT
 ┃ ┣ urls.py
 ┃ ┗ views.py
 ┣ scripts
+┃ ┣ create_superuser.py
+┃ ┣ load_organization_fixtures.py
+┃ ┣ load_sites_fixtures.py
+┃ ┣ load_users_fixtures.py
 ┃ ┣ reset_dev_env.py
+┃ ┗ setup_dev_env.py
 ┣ sites
 ┃ ┣ fixtures
 ┃ ┃ ┣ site_contacts.json
@@ -151,4 +155,5 @@ GWIIT
 ┃ ┣ urls.py
 ┃ ┣ validators.py
 ┃ ┗ views.py
-┗ manage.py
+┃ manage.py
+┗ requirements.txt

@@ -192,6 +192,10 @@ DATABASES = {
 
 DATABASE_ROUTERS = ['GWIIT.db_router.DatabaseRouter']
 
+# use Redis as the session engine
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
+
 # Redis Cache settings
 CACHES = {
     'default': {
@@ -205,9 +209,7 @@ CACHES = {
     }
 }
 
-# use Redis as the session engine
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-SESSION_CACHE_ALIAS = 'default'
+
 
 # set session expiry
 SESSION_COOKIE_AGE = 86400

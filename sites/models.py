@@ -1,6 +1,5 @@
 print("DEBUG: Starting to load models for sites app...")
 from django.db import models
-from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -39,6 +38,7 @@ class SiteManager(models.Manager):
         return self.filter(modified_by=user)
 
 class Site(models.Model):
+    id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=255, db_index=True, verbose_name=_('Site Name'))
     organization = models.ForeignKey('organizations.Organization', on_delete=models.PROTECT, related_name='sites', verbose_name=_('Organization Name'))  # Reference to Organization
     
@@ -53,7 +53,12 @@ class Site(models.Model):
     last_modified = models.DateTimeField(auto_now=True, verbose_name=_('Last Modified'))
     modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True, related_name='modified_sites', verbose_name=_('Modified By'))
 
+    objects = SiteManager()
+
     class Meta:
+
+        app_label = "sites"
+
         # Singular for 'Site' model
         verbose_name = _('Site')
         # Plural for 'Site' model
@@ -62,7 +67,6 @@ class Site(models.Model):
     def __str__(self):
         return self.name
 
-    objects = SiteManager()
 
 class ContactManager(models.Manager):
     # Returns all contacts from a specific site
@@ -86,6 +90,7 @@ class ContactManager(models.Manager):
         return self.filter(phone_number=phone_number)
 
 class Contact(models.Model):
+    id = models.BigAutoField(primary_key=True)
     site = models.ForeignKey('sites.Site', on_delete=models.SET_NULL, null=True, blank=True, related_name='contacts', verbose_name=_('Site Name'))
     first_name = models.CharField(max_length=30, null=True, blank=True, verbose_name=_('First Name'))
     last_name = models.CharField(max_length=30, null=True, blank=True, verbose_name=_('Last Name'))
@@ -103,6 +108,9 @@ class Contact(models.Model):
     objects = ContactManager()
 
     class Meta:
+
+        app_label = "sites"
+        
         # Singular for 'Contact' model
         verbose_name = _('Contact')
         # Plural for 'Contact' model

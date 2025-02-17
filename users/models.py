@@ -11,14 +11,6 @@ import importlib.resources
 import random
 import string
 
-MFA_CHOICES = [
-    ('none', _('None')),
-    ('google_authenticator', _('Google Authenticator')),
-    ('sms', _('SMS')),
-    ('email', _('Email')),
-    ('static_otp', _('Static OTP')),
-]
-
 """
 Custom manager for User model that provides helper methods
 to create regular users and superusers.
@@ -250,6 +242,15 @@ class UserManager(models.Manager):
         return self.filter(date_joined__gte=last_30_days, organization=organization)
 
 class User(AbstractBaseUser):
+    MFA_CHOICES = [
+        ('none', _('None')),
+        ('google_authenticator', _('Google Authenticator')),
+        ('sms', _('SMS')),
+        ('email', _('Email')),
+        ('static_otp', _('Static OTP')),
+    ]
+
+    id = models.BigAutoField(primary_key=True)
     email = models.EmailField(unique=True, blank=False, null=False, db_index=True, verbose_name=_('Email Address'))
     username = models.CharField(max_length=30, unique=True, null=True, blank=True, db_index=True, verbose_name=_('Username'))
     first_name = models.CharField(max_length=30, null=True, blank=True, db_index=True, verbose_name=_('First Name'))
@@ -280,6 +281,9 @@ class User(AbstractBaseUser):
     REQUIRED_FIELDS = []
 
     class Meta:
+
+        app_label = "users"
+        # db_table = 'users_User'
         ordering = ['email', 'username', 'first_name', 'last_name', 'badge_barcode', 'badge_rfid']
         # Singular for 'User' model
         verbose_name = _('User')
@@ -292,7 +296,7 @@ class User(AbstractBaseUser):
             models.Index(fields=['username', 'first_name', 'last_name'], name='username_first_last_name_idx'),
         ]
 
-    # Property for the full name
+    # Computed property for the full name
     @property
     def name(self):
         return f"{self.first_name} {self.last_name}".strip()

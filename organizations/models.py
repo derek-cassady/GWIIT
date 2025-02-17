@@ -1,44 +1,43 @@
 print("DEBUG: Starting to load models for organizations app...")
 from django.db import models
-from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-class OrganizationManager(models.Manager):
+from django.db import models
+
+class OrganizationTypeManager(models.Manager):
+    """Custom manager for the OrganizationType model."""
     
-    # Returns all active organizations
-    def active(self):
-        return self.filter(active=True)
+    def get_queryset(self):
+        """Ensure all queries return results ordered by name."""
+        return super().get_queryset().order_by("name")
 
-    # Returns all inactive organizations
-    def inactive(self):
-        return self.filter(active=False)
+    def by_name(self, name):
+        """Fetch an organization type by name (case insensitive)."""
+        return self.get_queryset().filter(name__iexact=name).first()
 
-    # Returns all organizations created by a specific user
-    def created_by_user(self, user):
-        return self.filter(created_by=user)
+    def with_description(self):
+        """Fetch organization types that have a description."""
+        return self.get_queryset().exclude(description__isnull=True).exclude(description="")
 
-    # Returns all organizations modified by a specific user
-    def modified_by_user(self, user):
-        return self.filter(modified_by=user)
+    def without_description(self):
+        """Fetch organization types that do not have a description."""
+        return self.get_queryset().filter(models.Q(description__isnull=True) | models.Q(description=""))
+
 
 class OrganizationType(models.Model):
-    # field for name of the organization type
-    name = models.CharField(
-        max_length=50, 
-        unique=True, 
-        verbose_name=_("Type Name")
-        )
     
-    # field for details of the organization type
-    description = models.TextField(
-        null=True, 
-        blank=True, 
-        verbose_name=_("Type Description")
-        )
+    id = models.BigAutoField(primary_key=True)
+    name = models.CharField(max_length=50, unique=True, verbose_name=_("Type Name"))
+    description = models.TextField(null=True, blank=True, verbose_name=_("Type Description"))
+
+    objects = OrganizationTypeManager()
 
     class Meta:
+        
+        app_label = "organizations"
+        
         # Specifies the singular display name for the model.
         # Used in places like the admin panel or form labels.
         verbose_name = _("Organization Type")
@@ -57,85 +56,51 @@ class OrganizationType(models.Model):
 
     def __str__(self):
         return self.name
+
+class OrganizationManager(models.Manager):
     
+    # Returns all active organizations
+    def active(self):
+        return self.filter(active=True)
+
+    # Returns all inactive organizations
+    def inactive(self):
+        return self.filter(active=False)
+
+    # Returns all organizations created by a specific user
+    def created_by_user(self, user):
+        return self.filter(created_by=user)
+
+    # Returns all organizations modified by a specific user
+    def modified_by_user(self, user):
+        return self.filter(modified_by=user)    
+
 # Core organization details
 class Organization(models.Model):
-    # Name of the organization (must be unique).   
-    name = models.CharField(
-        max_length=100, 
-        unique=True, 
-        verbose_name=_('Organization Name')
-        )
-    
-    type = models.ForeignKey(
-        # Reference "OrganizationType" model
-        'OrganizationType', 
-        # Prevent deletion if used in organizations
-        on_delete=models.PROTECT,
-        null=True, 
-        blank=True, 
-        verbose_name=_('Type')
-        )
-    
-    active = models.BooleanField(
-        default=True, 
-        verbose_name=_('Organization Active')
-        )
-    
-    # Reference the Contact model, Allow the organization to persist if the contact is deleted
-    contact = models.OneToOneField(
-        'organizations.OrganizationContact', 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True, 
-        related_name="contact_organization", 
-        verbose_name=_("Contact")
-        )
- 
-    # Preferences and settings
-    login_options = models.JSONField(
-        default=dict, 
-        verbose_name=_("Login Options")
-    )
-
-    mfa_required = models.BooleanField(
-        default=False, 
-        verbose_name=_("MFA Required")
-    )
+    id = models.BigAutoField(primary_key=True)   
+    name = models.CharField(max_length=100, unique=True, verbose_name=_('Organization Name'))
+    type = models.ForeignKey('OrganizationType', on_delete=models.PROTECT, null=True, blank=True, verbose_name=_('Type'))
+    active = models.BooleanField(default=True, verbose_name=_('Organization Active'))
+    contact = models.OneToOneField('organizations.OrganizationContact', on_delete=models.SET_NULL, null=True, blank=True, related_name="contact_organization", verbose_name=_("Contact"))
+    login_options = models.JSONField(default=dict, verbose_name=_("Login Options"))
+    mfa_required = models.BooleanField(default=False, verbose_name=_("MFA Required"))
 
     # Tracking fields
-    date_created = models.DateTimeField(
-        auto_now_add=True, 
-        verbose_name=_('Date Created')
-        )
+    date_created = models.DateTimeField(auto_now_add=True, verbose_name=_('Date Created'))
     
     # Reference to User model
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.PROTECT, 
-        related_name='created_organizations', 
-        null=True, blank=True, 
-        verbose_name=_('Created By')
-        )
-    
-    last_modified = models.DateTimeField(
-        auto_now=True, 
-        verbose_name=_('Last Modified')
-        )
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='created_organizations', null=True, blank=True, verbose_name=_('Created By'))
+    last_modified = models.DateTimeField(auto_now=True, verbose_name=_('Last Modified'))
     
     # Reference to User model
-    modified_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.PROTECT, 
-        related_name='modified_organizations', 
-        null=True, 
-        blank=True, 
-        verbose_name=_('Modified By')
-        )
+    modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='modified_organizations', null=True, blank=True, verbose_name=_('Modified By'))
 
     objects = OrganizationManager()
 
     class Meta:
+
+        app_label = "organizations"
+        db_table = 'organizations_Organization'
         # Singular for 'Organization' model
         verbose_name = _('Organization')
         # Plural for 'Organization' model
@@ -162,6 +127,7 @@ class ContactManager(models.Manager):
         return self.filter(modified_by=user)
 
 class OrganizationContact(models.Model):
+    id = models.BigAutoField(primary_key=True)
     organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True, blank=True, related_name='contact_organization', verbose_name=_('contact_organization'))
     first_name = models.CharField(max_length=30, null=True, blank=True, verbose_name=_('First Name'))
     last_name = models.CharField(max_length=30, null=True, blank=True, verbose_name=_('Last Name'))
@@ -179,6 +145,9 @@ class OrganizationContact(models.Model):
     objects = ContactManager()
 
     class Meta:
+
+        app_label = "organizations"
+
         # Singular for 'Contact' model
         verbose_name = _('Contact')
         # Plural for 'Contact' model

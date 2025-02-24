@@ -36,6 +36,23 @@ ALLOWED_HOSTS = ['*']
 
 # Customer User Model created in 'users' app for login
 AUTH_USER_MODEL = 'users.User'
+# Internationalization
+# https://docs.djangoproject.com/en/5.1/topics/i18n/
+
+# Default language for the application
+LANGUAGE_CODE = 'en-us'
+
+# Default timezone; stored in UTC internally
+TIME_ZONE = 'UTC'
+
+# Enables Django's internationalization features
+USE_I18N = True
+
+# Enables localized formatting of numbers, dates, etc.
+USE_L10N = True
+
+# Stores all timestamps in UTC for consistency
+USE_TZ = True
 
 # Application definition
 
@@ -190,7 +207,14 @@ DATABASES = {
     },
 }
 
-DATABASE_ROUTERS = ['GWIIT.db_router.DatabaseRouter']
+DATABASE_ROUTERS = [
+    "GWIIT.db_router.AuthenticationRouter",
+    "GWIIT.db_router.AuthorizationRouter",
+    "GWIIT.db_router.OrganizationsRouter",
+    "GWIIT.db_router.SitesRouter",
+    "GWIIT.db_router.UsersRouter",
+    "GWIIT.db_router.DefaultRouter",
+]
 
 # use Redis as the session engine
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
@@ -253,16 +277,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
-USE_I18N = True
-
-USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)

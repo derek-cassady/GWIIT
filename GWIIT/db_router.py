@@ -1,91 +1,187 @@
-class DatabaseRouter:
-    
-    # database router to control operations for each app
+from django.apps import apps
 
-    """
-    Determines which database should be used for read operations.
-        - Each app has its own dedicated database.
-        - This method routes read queries (`SELECT`) to the appropriate database.
-    """
+class AuthenticationRouter:
+    route_app_labels = {"authentication"}
 
     def db_for_read(self, model, **hints):
-        # point read operations to the correct database
-        
-        # authentication DB
-        if model._meta.app_label == 'authentication':
-            return 'authentication_db'
-        
-        # authorization DB
-        elif model._meta.app_label == 'authorization':
-            return 'authorization_db'
-        
-        # organizations DB
-        elif model._meta.app_label == 'organizations':
-            return 'organizations_db'
-        
-        # sites DB
-        elif model._meta.app_label == 'sites':
-            return 'sites_db'
-        
-        # users DB
-        elif model._meta.app_label == 'users':
-            return 'users_db'
-        
-        return 'default'
-
-    """
-    Determines which database should be used for write operations.
-        - Instead of duplicating logic, it calls `db_for_read()`
-        - This ensures that write operations (`INSERT`, `UPDATE`, `DELETE`) 
-            go to the same database as read operations.  
-    """
-
-    def db_for_write(self, model, **hints):
-        
-        return self.db_for_read(model, **hints)
-
-    """
-    Determines if a relation between two objects should be allowed.
-        - Defines a set of valid database names (`db_set`).
-        - Checks if both objects belong to one of the databases in `db_set`.
-        - If both objects are stored in a recognized database, the relation is allowed (`True`).
-        - If the condition fails, Django will disallow the relation (`None`).
-    """
-    
-    def allow_relation(self, obj1, obj2, **hints):
-        
-        #  database names that are valid
-        db_set = {'authentication_db', 'authorization_db', 'organizations_db', 'sites_db', 'users_db', 'default'}
-        
-        # checks if DB for object 1 and then 2 are in the "db_set"
-        if obj1._state.db in db_set and obj2._state.db in db_set:
-            
-            # allows relationship
-            return True
-        
-        # if condition fails, DJango disallows relationship
+        if model._meta.app_label in self.route_app_labels:
+            return "authentication_db"
         return None
 
-    """
-    Determines whether a model's migration should be applied to a given database.
-        - Maps each app to its designated database.
-        - Ensures migrations only run on the correct database.
-            - `True` if the migration should be applied to the specified database.
-            - `False` otherwise.
-    """
+    def db_for_write(self, model, **hints):
+        if model._meta.app_label in self.route_app_labels:
+            return "authentication_db"
+        return None
+
+    def allow_relation(self, obj1, obj2, **hints):
+        allowed_apps = {"users", "organizations", "sites", "authentication", "authorization", "admin", "auth", "contenttypes", "sessions"}
+        if obj1._meta.app_label in allowed_apps and obj2._meta.app_label in allowed_apps:
+            return True
+        return None
+
     def allow_migrate(self, db, app_label, model_name=None, **hints):
-        
-        app_db_mapping = {
-        'authentication': 'authentication_db',
-        'authorization': 'authorization_db',
-        'organizations': 'organizations_db',
-        'sites': 'sites_db',
-        'users': 'users_db',
-    }
+        if app_label in self.route_app_labels:
+            return db == "authentication_db"
+        return None
 
-        # Check if the app is in the mapping and ensure migration runs on the correct database
-        if app_label in app_db_mapping:
-            return db == app_db_mapping[app_label]
 
-        # Default fallback for other apps
-        return db == 'default'
+class AuthorizationRouter:
+    route_app_labels = {"authorization"}
+
+    def db_for_read(self, model, **hints):
+        if model._meta.app_label in self.route_app_labels:
+            return "authorization_db"
+        return None
+
+    def db_for_write(self, model, **hints):
+        if model._meta.app_label in self.route_app_labels:
+            return "authorization_db"
+        return None
+
+    def allow_relation(self, obj1, obj2, **hints):
+        allowed_apps = {"users", "organizations", "sites", "authentication", "authorization", "admin", "auth", "contenttypes", "sessions"}
+        if obj1._meta.app_label in allowed_apps and obj2._meta.app_label in allowed_apps:
+            return True
+        return None
+
+    def allow_migrate(self, db, app_label, model_name=None, **hints):
+        if app_label in self.route_app_labels:
+            return db == "authorization_db"
+        return None
+
+
+class OrganizationsRouter:
+    route_app_labels = {"organizations"}
+
+    def db_for_read(self, model, **hints):
+        if model._meta.app_label in self.route_app_labels:
+            return "organizations_db"
+        return None
+
+    def db_for_write(self, model, **hints):
+        if model._meta.app_label in self.route_app_labels:
+            return "organizations_db"
+        return None
+
+    def allow_relation(self, obj1, obj2, **hints):
+        allowed_apps = {"users", "organizations", "sites", "authentication", "authorization", "admin", "auth", "contenttypes", "sessions"}
+        if obj1._meta.app_label in allowed_apps and obj2._meta.app_label in allowed_apps:
+            return True
+        return None
+
+    def allow_migrate(self, db, app_label, model_name=None, **hints):
+        if app_label in self.route_app_labels:
+            return db == "organizations_db"
+        return None
+
+
+class SitesRouter:
+    route_app_labels = {"sites"}
+
+    def db_for_read(self, model, **hints):
+        if model._meta.app_label in self.route_app_labels:
+            return "sites_db"
+        return None
+
+    def db_for_write(self, model, **hints):
+        if model._meta.app_label in self.route_app_labels:
+            return "sites_db"
+        return None
+
+    def allow_relation(self, obj1, obj2, **hints):
+        allowed_apps = {"users", "organizations", "sites", "authentication", "authorization", "admin", "auth", "contenttypes", "sessions"}
+        if obj1._meta.app_label in allowed_apps and obj2._meta.app_label in allowed_apps:
+            return True
+        return None
+
+    def allow_migrate(self, db, app_label, model_name=None, **hints):
+        if app_label in self.route_app_labels:
+            return db == "sites_db"
+        return None
+
+
+class UsersRouter:
+    route_app_labels = {"users"}
+
+    def db_for_read(self, model, **hints):
+        if model._meta.app_label in self.route_app_labels:
+            return "users_db"
+        return None
+
+    def db_for_write(self, model, **hints):
+        if model._meta.app_label in self.route_app_labels:
+            return "users_db"
+        return None
+
+    def allow_relation(self, obj1, obj2, **hints):
+        allowed_apps = {"users", "organizations", "sites", "authentication", "authorization", "admin", "auth", "contenttypes", "sessions"}
+        if obj1._meta.app_label in allowed_apps and obj2._meta.app_label in allowed_apps:
+            return True
+        return None
+
+    def allow_migrate(self, db, app_label, model_name=None, **hints):
+        if app_label in self.route_app_labels:
+            return db == "users_db"
+        return None
+
+
+class DefaultRouter:
+    # """Router for Django's default apps (admin, auth, contenttypes, sessions)."""
+    # route_app_labels = {"admin", "auth", "contenttypes", "sessions"}
+
+    # def db_for_read(self, model, **hints):
+    #     if model._meta.app_label in self.route_app_labels:
+    #         return "default"
+    #     return None
+
+    # def db_for_write(self, model, **hints):
+    #     if model._meta.app_label in self.route_app_labels:
+    #         return "default"
+    #     return None
+
+    # def allow_relation(self, obj1, obj2, **hints):
+    #     allowed_apps = {"users", "organizations", "sites", "authentication", "authorization", "admin", "auth", "contenttypes", "sessions"}
+    #     if obj1._meta.app_label in allowed_apps and obj2._meta.app_label in allowed_apps:
+    #         return True
+    #     return None
+
+    # # def allow_migrate(self, db, app_label, model_name=None, **hints):
+    # #     """Ensure default models only migrate to default."""
+    # #     if app_label in self.route_app_labels:
+    # #         return db == "default"
+    # #     return None
+    
+    # def allow_migrate(self, db, app_label, model_name=None, **hints):
+    #     if app_label == 'admin':
+    #         return db == 'default'
+    #     return None
+    """Router for Django's default apps (admin, auth, contenttypes, sessions)."""
+    route_app_labels = {"admin", "auth", "contenttypes", "sessions"}
+
+    def db_for_read(self, model, **hints):
+        if model._meta.app_label in self.route_app_labels:
+            return "default"
+        return None
+
+    def db_for_write(self, model, **hints):
+        if model._meta.app_label in self.route_app_labels:
+            return "default"
+        return None
+
+    def allow_relation(self, obj1, obj2, **hints):
+        allowed_apps = {
+            "users", "organizations", "sites", "authentication", "authorization",
+            "admin", "auth", "contenttypes", "sessions"
+        }
+        if obj1._meta.app_label in allowed_apps and obj2._meta.app_label in allowed_apps:
+            return True
+        return None
+
+    def allow_migrate(self, db, app_label, model_name=None, **hints):
+        """
+        Allow `auth`, `contenttypes`, `sessions`, and `admin` to migrate in all databases that need them.
+        This ensures models like `django_admin_log` are available where required.
+        """
+        if app_label in {"admin", "auth", "contenttypes", "sessions"}:
+            return db in {"default", "users_db", "organizations_db", "sites_db"}
+        return None

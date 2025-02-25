@@ -233,7 +233,7 @@ CACHES = {
     }
 }
 
-
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # set session expiry
 SESSION_COOKIE_AGE = 86400

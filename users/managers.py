@@ -1,7 +1,5 @@
 from django.db import models
-from users.models import User
-from organizations.models import Organization
-from sites.models import Site
+from django.apps import apps
 from django.core.mail import send_mail
 from django.utils.timezone import now, timedelta
 import random
@@ -156,8 +154,9 @@ class UserManager(models.Manager):
 
     Sends Credentials via Email (Console Mail for Development).
     """
+
     def create_user(self, email, password=None, **extra_fields):
-        
+    
         username = extra_fields.get("username")
         badge_barcode = extra_fields.get("badge_barcode")
         badge_rfid = extra_fields.get("badge_rfid")
@@ -171,6 +170,9 @@ class UserManager(models.Manager):
         # Normalize email
         extra_fields["email"] = self.normalize_email(email)
 
+        # Dynamically retrieve models using apps.get_model()
+        User = apps.get_model("users", "User")
+
         # Extract manually managed foreign key IDs
         organization_id = extra_fields.pop("organization_id", None)
         site_id = extra_fields.pop("site_id", None)
@@ -180,8 +182,8 @@ class UserManager(models.Manager):
         # Generate a secure password
         password = self.generate_secure_password()
 
-        # Create the user instance
-        user = self.model(**extra_fields)
+        # Create the user instance dynamically
+        user = User(**extra_fields)
         user.set_password(password)  # Hash the password
 
         # Assign manually managed foreign key IDs
@@ -220,7 +222,11 @@ class UserManager(models.Manager):
         - `User.objects.update_user(user_id=5, modified_by_id=2, username="new_name")`
     """
     def update_user(self, user_id, **updated_fields):
+
         try:
+            # Retrieve the user model dynamically
+            User = apps.get_model("users", "User")
+
             # Retrieve the user instance from the correct database
             user = self.get_queryset().using("users_db").get(id=user_id)
 
@@ -257,7 +263,7 @@ class UserManager(models.Manager):
             user.save(using="users_db")
             return user
 
-        except self.model.DoesNotExist:
+        except User.DoesNotExist:
             raise ValueError(f"User with ID {user_id} does not exist.")
 
     """
@@ -276,9 +282,13 @@ class UserManager(models.Manager):
             - `ValueError` if trying to delete a superuser.
     """
     def delete_user(self, user_id):
+
         try:
-            # Retrieve the user instance
-            user = self.get_queryset().using("users_db").get(id=user_id)
+            # Retrieve the user model dynamically
+            User = apps.get_model("users", "User")
+
+            # Retrieve the user instance from the correct database
+            user = User.objects.using("users_db").get(id=user_id)
 
             # Prevent accidental deletion of superusers
             if user.is_superuser:
@@ -288,7 +298,7 @@ class UserManager(models.Manager):
             user.delete(using="users_db")
             return f"User with ID {user_id} deleted successfully."
 
-        except self.model.DoesNotExist:
+        except User.DoesNotExist:
             raise ValueError(f"User with ID {user_id} does not exist.")
 
     """
@@ -305,13 +315,14 @@ class UserManager(models.Manager):
 
     def create_superuser(self, email, username, password=None, **extra_fields):
     
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
 
-        if extra_fields.get('is_staff') is not True or extra_fields.get('is_superuser') is not True:
+        if extra_fields["is_staff"] is not True or extra_fields["is_superuser"] is not True:
             raise ValueError("Superuser must have is_staff=True and is_superuser=True.")
 
         return self.create_user(email=email, username=username, password=password, **extra_fields)
+
 
     """
     Updates an existing superuser while manually managing foreign key IDs.
@@ -381,20 +392,19 @@ class UserManager(models.Manager):
             raise ValueError(f"Superuser with ID {user_id} does not exist.")
 
     """
-        Deletes a superuser from the users_db with extra safety checks.
+    Updates a superuser while ensuring `is_staff=True` and `is_superuser=True`.
 
-        **Usage Example:**
-            - `User.objects.delete_superuser(user_id=1)`
+    Enforces:
+        - `is_superuser` status is never removed.
+        - `is_staff` remains True.
+        - At least one login identifier (username, badge) is always set.
 
-        **Handles:**
-            - Ensuring the superuser exists before deletion.
-            - Preventing deletion of the last remaining superuser.
-            - Removing the superuser only from `users_db`.
-
-        Raises:
-            - `ValueError` if the superuser does not exist.
-            - `ValueError` if deleting the last superuser.
+    Raises:
+        - ValueError if user does not exist or is not a superuser.
+        - ValueError if `is_staff` or `is_superuser` is set to False.
+        - ValueError if no login identifier remains.
     """
+    
     def delete_superuser(self, user_id):
         try:
             # Retrieve the superuser instance
@@ -412,35 +422,40 @@ class UserManager(models.Manager):
             raise ValueError(f"Superuser with ID {user_id} does not exist.")
 
     """
-    Fetches an active user based on a unique identifier.
+    Retrieves an active user using a natural key (email, username, badge barcode, or badge RFID).
 
-    Login Identifier Options:
-        - Email (`email`)
-        - Username (`username`)
-        - Badge Barcode (`badge_barcode`)
-        - Badge RFID (`badge_rfid`)
+    Enforces:
+        - User must be active (`is_active=True`).
+        - Lookup is case-insensitive (`iexact`).
+        - Supports login via:
+            - `email`
+            - `username`
+            - `badge_barcode`
+            - `badge_rfid`
 
-    Behavior:
-        - Case-insensitive lookup (`iexact`) for flexible authentication.
-        - Ensures only **active** users can authenticate.
+    Raises:
+        - ValueError: If no matching active user is found.
     """
         
     def get_by_natural_key(self, identifier):
 
-        return self.get(
-            models.Q(is_active=True) & (
+        try:
+            return self.get(
+                models.Q(is_active=True) & (
                 models.Q(email__iexact=identifier) |
                 models.Q(username__iexact=identifier) |
                 models.Q(badge_barcode__iexact=identifier) |
                 models.Q(badge_rfid__iexact=identifier)
+                )
             )
-        )
+        except self.model.DoesNotExist:
+            raise ValueError(f"No active user found with identifier: {identifier}")
     
     """
-    Custom QuerySet Methods for User Model
+    Custom Manager Methods for User Model
 
     Optimized query methods to handle user-related queries efficiently.
-    
+
     Key Features:
         - Query users based on login identifiers (email, username, badge_barcode, badge_rfid).
         - Filter users by active/inactive status.
@@ -448,11 +463,20 @@ class UserManager(models.Manager):
         - Fetch users associated with specific organizations and sites.
         - Handle Multi-Factor Authentication (MFA) preferences.
         - Identify staff users and recently joined users.
-    
+
+    **Why These Methods Do Not Use `get_queryset()`**
+    These manager methods **operate on existing QuerySets**—they do not retrieve objects independently.
+    - `get_queryset()` is **not needed** because we are working with `self.filter()`, which applies to an existing QuerySet.
+    - This ensures optimal query execution without redefining how QuerySets are retrieved.
+
+    **Why We Do Not Use `apps.get_model()` Here**
+    - These methods **do not need explicit model references** since they only filter the User model itself.
+    - `apps.get_model()` is only required when dynamically retrieving related models, which we handle elsewhere.
+
     **Manual Foreign Key Handling**
     Since Django does not natively support cross-database foreign keys, we store organization, 
-        site, and user relationships using **IntegerFields** (organization_id, site_id, created_by_id, modified_by_id).
-    
+    site, and user relationships using **IntegerFields** (organization_id, site_id, created_by_id, modified_by_id).
+
     To retrieve related objects:
         - Use `User.get_organization()` to manually fetch the related Organization.
         - Use `User.get_site()` to manually fetch the related Site.

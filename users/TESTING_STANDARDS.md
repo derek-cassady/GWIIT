@@ -121,19 +121,23 @@ This ensures that tests do not only confirm success, but also check robust error
 ---
 
 ## Consistent Test Naming Convention
+To maintain clarity and debugging efficiency, test method names follow a structured format. Since test files are already separated by component (e.g., `test_managers.py`, `test_models.py`), we simplify the naming convention while ensuring consistency.
 
-Test method names follow this format:
-
-test_<app_name>_<file_name>_<class_name>_<method_name>_<expected_behavior>()
-
-Example:
+**Example:** Standard Format
 ```Python
-def test_<app_name>_<file_name>_<class_name>_<method_name>_success(self):
-def test_<app_name>_<file_name>_<class_name>_<method_name>_failure(self):
+test_<ClassName>_<MethodName>_<ExpectedBehavior>()
 ```
-
-This ensures clarity when debugging and running tests.
-
+**Example:** for `test_managers.py` (`UserManager` tests)
+```Python
+def test_UserManager_normalize_email_uppercase(self):
+def test_UserManager_normalize_email_leading_trailing_spaces(self):
+def test_UserManager_normalize_email_invalid_format(self):
+```
+**Example:** for `test_models.py` (`User` model tests)
+```Python
+def test_User_get_organization_valid(self):
+def test_User_get_organization_no_association(self):
+```
 ---
 
 ## Test Terminology

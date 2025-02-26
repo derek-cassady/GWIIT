@@ -1,113 +1,44 @@
 #!/usr/bin/env python
-print("DEBUG: manage.py execution started...")
 """
-Django's command-line utility for administrative tasks, 
-including server setup and cleanup.
+    Django Management Script (`manage.py`)
+
+    Purpose:
+        - Acts as the command-line utility for executing Django administrative tasks.
+        - Loads Django settings and initializes the execution environment.
+
+    **What is `#!/usr/bin/env python`?**
+        - The shebang (`#!`) at the beginning of the script tells Unix-based operating systems which interpreter to use.
+        - `env python` ensures that the correct Python interpreter is found in the system’s `$PATH`, allowing the script to run across different environments.
+        - On Windows, this line is ignored, but it is necessary for compatibility on Linux/macOS.
+
+    Expected Behavior:
+        - **Sets up Django’s environment** by defining the `DJANGO_SETTINGS_MODULE`.
+        - **Calls Django’s command-line utility** to execute management commands.
+        - **Handles errors gracefully**, ensuring meaningful error messages if setup fails.
+
+    Guarantees:
+        - **Ensures Django is properly initialized** before executing any command.
+        - **Supports multi-database configurations** by using Django’s built-in settings detection.
+        - **Provides a consistent method to manage the project in all environments.**
 """
+
 import os
 import sys
-# ability register a shutdown hook
-import atexit
-# ability to run scripts
-import subprocess
-import time
 
-# define path to setup and cleanup scripts
 
-# Locate the "scripts/" folder
-SCRIPTS_DIR = os.path.join(os.path.dirname(__file__), "scripts")
-
-# Path to setup script
-SETUP_SCRIPT = os.path.join(SCRIPTS_DIR, "setup_dev_env.py")
-
-# # Path to cleanup script
-# RESET_SCRIPT = os.path.join(SCRIPTS_DIR, "reset_dev_env.py")
-
-"""
-Runs the setup script before starting the server.
-    - Ensures migrations are applied and the environment is ready.
-    - Only runs if 'runserver' is the command.
-"""
-
-def run_setup():
-    lock_file = "setup_running.lock"
-
-    # If the lock file exists, another process is already running setup, so exit
-    if os.path.exists(lock_file):
-        print("DEBUG: Setup is already running in another process. Skipping duplicate execution.")
-        return
-    
-    # Create a lock file to indicate setup is running
-    with open(lock_file, "w") as f:
-        f.write(str(time.time()))
-
-    print(f"DEBUG: run_setup() function called at {time.time()} before running setup_dev_env.py")
-    
-    try:
-        subprocess.run(["python", "scripts/setup_dev_env.py"], check=True)
-        print(f"DEBUG: setup_dev_env.py completed successfully at {time.time()}")
-
-    except subprocess.CalledProcessError as e:
-        print(f"ERROR: setup_dev_env.py failed with exit code {e.returncode}")
-        sys.exit(1)
-
-    finally:
-        # Remove the lock file after setup completes
-        if os.path.exists(lock_file):
-            os.remove(lock_file)
-
-"""
-Run administrative tasks.
-    - Ensures the correct Django settings module is set.
-    - Calls Django's command-line interface (manage.py commands).
-    - If the server stops (either manually or due to an error), cleanup is triggered.
-"""
-print("DEBUG: Entering main() function...")
 def main():
-    print(f"DEBUG: manage.py execution started at {time.time()}")
-    # run administrative tasks.
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'GWIIT.settings')
-    
-    print("DEBUG: manage.py execution started...")
-
 
     try:
-        # Ensure setup runs first before continuing
-        run_setup()
-
-        # Wait for setup_complete.lock before continuing
-        SETUP_COMPLETE_FILE = "setup_complete.lock"
-        
-        # Max wait time in seconds
-        MAX_WAIT_TIME = 60
-        
-        # Check every 2 seconds
-        WAIT_INTERVAL = 2
-
-        start_time = time.time()
-        while not os.path.exists(SETUP_COMPLETE_FILE):
-            if time.time() - start_time > MAX_WAIT_TIME:
-                
-                print("ERROR: Setup did not complete within the expected time.")
-                sys.exit(1)
-            
-            print("DEBUG: Waiting for setup to complete...")
-            time.sleep(WAIT_INTERVAL)
-
-        # Once the lock file is detected, remove it to avoid future interference
-        os.remove(SETUP_COMPLETE_FILE)
-        print("DEBUG: Setup complete. Lock file removed.")
-        
         from django.core.management import execute_from_command_line
-        print("DEBUG: Calling execute_from_command_line()...")
-        execute_from_command_line(sys.argv)
+    except ImportError as exc:
+        raise ImportError(
+            "Couldn't import Django. Are you sure it's installed and "
+            "available on your PYTHONPATH environment variable? Did you "
+            "forget to activate a virtual environment?"
+        ) from exc
     
-    except Exception as e:
-        print(f"ERROR: Exception occurred in manage.py: {e}")
-        sys.exit(1)
-
-#DEBUG: execution complete
-print("DEBUG: manage.py execution complete.")    
+    execute_from_command_line(sys.argv)
 
 if __name__ == '__main__':
     main()

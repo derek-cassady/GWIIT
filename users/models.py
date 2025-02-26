@@ -1,10 +1,8 @@
 from django.contrib.auth.models import AbstractBaseUser
 from django.db import models
 from .managers import UserManager
-from organizations.models import Organization
-from sites.models import Site
-from django.utils.timezone import now, timedelta
-from django.conf import settings
+from django.apps import apps
+from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 
 """
@@ -137,7 +135,9 @@ class User(AbstractBaseUser):
         - They operate at the instance level, retrieving related records dynamically.
         - They provide a way to access related objects without an actual ForeignKey.
         - Unlike `UserManager`, which handles QuerySet-level operations, these methods
-            return a single related object or `None`.
+          return a single related object or `None`.
+        - **Uses `apps.get_model()`** to ensure dynamic and reliable model resolution
+          across different apps.
 
     Usage Example:
         user = User.objects.using("users_db").get(id=1)
@@ -146,24 +146,24 @@ class User(AbstractBaseUser):
 
     def get_organization(self):
         if self.organization_id:
-            # Keep import inside method when doing cross app references.
-            from organizations.models import Organization
+            Organization = apps.get_model("organizations", "Organization")
             return Organization.objects.using("organizations_db").filter(id=self.organization_id).first()
         return None
 
     def get_site(self):
         if self.site_id:
-            # Keep import inside method when doing cross app references.
-            from sites.models import Site
+            Site = apps.get_model("sites", "Site")
             return Site.objects.using("sites_db").filter(id=self.site_id).first()
         return None
 
     def get_created_by(self):
         if self.created_by_id:
+            User = apps.get_model("users", "User")
             return User.objects.using("users_db").filter(id=self.created_by_id).first()
         return None
 
     def get_modified_by(self):
         if self.modified_by_id:
+            User = apps.get_model("users", "User")
             return User.objects.using("users_db").filter(id=self.modified_by_id).first()
         return None

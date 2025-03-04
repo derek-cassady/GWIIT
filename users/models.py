@@ -4,6 +4,7 @@ from .managers import UserManager
 from django.apps import apps
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
+from django.db.models import Q
 
 """
 Custom User Model for Multi-Database Setup
@@ -44,7 +45,7 @@ class User(AbstractBaseUser):
     ]
 
     id = models.BigAutoField(primary_key=True)
-    email = models.EmailField(unique=True, blank=False, null=False, db_index=True, verbose_name=_('Email Address'))
+    email = models.EmailField(blank=False, null=False, db_index=True, verbose_name=_('Email Address'))
     username = models.CharField(max_length=30, unique=True, null=True, blank=True, db_index=True, verbose_name=_('Username'))
     password = models.CharField(max_length=128, verbose_name=_("Password"))
     first_name = models.CharField(max_length=30, null=True, blank=True, db_index=True, verbose_name=_('First Name'))
@@ -96,6 +97,55 @@ class User(AbstractBaseUser):
         ordering = ['email', 'username', 'first_name', 'last_name', 'badge_barcode', 'badge_rfid']
         verbose_name = _('User')
         verbose_name_plural = _('Users')
+
+        """
+        Conditional Unique Constraints for User Model
+
+        Purpose:
+            - Enforces uniqueness on specific fields (`email`, `username`, `badge_barcode`, `badge_rfid`) 
+                but only for active users (`is_active=True`).
+            - Allows inactive unique identifies to be recycled if they are inactive.
+
+        How It Works:
+            - Each constraint applies a condition using `Q(is_active=True)`, meaning the uniqueness 
+                rule is enforced only for active users.
+            - If a user is inactive (`is_active=False`), their `email`, `username`, `badge_barcode`, 
+                or `badge_rfid` can be reused by another account.
+            - Prevents accidental duplication of active accounts while supporting controlled 
+                recycling of credentials for deactivated users.
+
+        Key Considerations:
+            - **Database Support:** SQLite supports partial indexes, making this feature compatible 
+            for development. PostgreSQL for production supports this as well.
+            - **Null Handling:** Django allows `NULL` values in fields with unique constraints, 
+            ensuring that empty values do not violate the constraints.
+            - **Security & Account Management:** Ensures active users always have unique identifiers, 
+            reducing conflicts while allowing safe recycling of deactivated accounts.
+
+        """
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=['email'],
+                condition=Q(is_active=True),
+                name='unique_active_email'
+            ),
+            models.UniqueConstraint(
+                fields=['username'],
+                condition=Q(is_active=True),
+                name='unique_active_username'
+            ),
+            models.UniqueConstraint(
+                fields=['badge_barcode'],
+                condition=Q(is_active=True),
+                name='unique_active_badge_barcode'
+            ),
+            models.UniqueConstraint(
+                fields=['badge_rfid'],
+                condition=Q(is_active=True),
+                name='unique_active_badge_rfid'
+            ),
+        ]
 
     """
     Computed Property: Full Name

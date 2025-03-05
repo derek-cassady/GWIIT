@@ -8,53 +8,53 @@ import secrets
 import re
 
 """
-    Custom Manager for the User Model
+Custom Manager for the User Model
 
-    Provides methods for creating, updating, deleting, and querying users,
+Provides methods for creating, updating, deleting, and querying users,
     while supporting manual foreign key handling due to multi-database constraints.
 
-    **Create, Update & Deletion Methods:**
-        - `create_user(email, password=None, **extra_fields)`: Creates a new user while manually handling foreign keys.
-        - `create_superuser(email, username, password=None, **extra_fields)`: Creates a superuser with full admin access.
-        - `update_user(user_id, **updated_fields)`: Updates an existing user with the provided field values.
-        - `delete_user(user_id)`: Deletes a user with verification.
+Create, Update & Deletion Methods:
+    - `create_user(email, password=None, **extra_fields)`: Creates a new user while manually handling foreign keys.
+    - `create_superuser(email, username, password=None, **extra_fields)`: Creates a superuser with full admin access.
+    - `update_user(user_id, **updated_fields)`: Updates an existing user with the provided field values.
+    - `delete_user(user_id)`: Deletes a user with verification.
 
-    **Query Methods:**
-        - `by_email(email)`: Retrieves a user by email.
-        - `by_username(username)`: Retrieves a user by username.
-        - `by_badge_barcode(barcode)`: Retrieves a user by badge barcode.
-        - `by_badge_rfid(rfid)`: Retrieves a user by badge RFID.
-        - `active()`: Retrieves all active users.
-        - `inactive()`: Retrieves all inactive users.
-        - `by_first_name(first_name)`: Retrieves users by first name (case-insensitive).
-        - `by_last_name(last_name)`: Retrieves users by last name (case-insensitive).
-        - `by_full_name(first_name, last_name)`: Retrieves users by full name.
-        - `from_site(site_id)`: Retrieves users belonging to a specific site.
-        - `from_organization(organization_id)`: Retrieves users belonging to a specific organization.
-        - `active_from_site(site_id)`: Retrieves active users from a specific site.
-        - `inactive_from_site(site_id)`: Retrieves inactive users from a specific site.
-        - `active_from_organization(organization_id)`: Retrieves active users from a specific organization.
-        - `inactive_from_organization(organization_id)`: Retrieves inactive users from a specific organization.
-        - `without_mfa()`: Retrieves users who do not have MFA enabled.
-        - `with_google_authenticator()`: Retrieves users using Google Authenticator for MFA.
-        - `with_sms()`: Retrieves users using SMS for MFA.
-        - `with_email_mfa()`: Retrieves users using Email for MFA.
-        - `staff()`: Retrieves all staff users.
-        - `staff_from_site(site_id)`: Retrieves staff users from a specific site.
-        - `staff_from_organization(organization_id)`: Retrieves staff users from a specific organization.
-        - `recently_joined(days=30)`: Retrieves users who joined within the last `X` days.
-        - `recently_joined_from_site(site_id, days=30)`: Retrieves users who joined within the last `X` days from a specific site.
-        - `recently_joined_from_organization(organization_id, days=30)`: Retrieves users who joined within the last `X` days from a specific organization.
+Query Methods:
+    - `by_email(email)`: Retrieves a user by email.
+    - `by_username(username)`: Retrieves a user by username.
+    - `by_badge_barcode(barcode)`: Retrieves a user by badge barcode.
+    - `by_badge_rfid(rfid)`: Retrieves a user by badge RFID.
+    - `active()`: Retrieves all active users.
+    - `inactive()`: Retrieves all inactive users.
+    - `by_first_name(first_name)`: Retrieves users by first name (case-insensitive).
+    - `by_last_name(last_name)`: Retrieves users by last name (case-insensitive).
+    - `by_full_name(first_name, last_name)`: Retrieves users by full name.
+    - `from_site(site_id)`: Retrieves users belonging to a specific site.
+    - `from_organization(organization_id)`: Retrieves users belonging to a specific organization.
+    - `active_from_site(site_id)`: Retrieves active users from a specific site.
+    - `inactive_from_site(site_id)`: Retrieves inactive users from a specific site.
+    - `active_from_organization(organization_id)`: Retrieves active users from a specific organization.
+    - `inactive_from_organization(organization_id)`: Retrieves inactive users from a specific organization.
+    - `without_mfa()`: Retrieves users who do not have MFA enabled.
+    - `with_google_authenticator()`: Retrieves users using Google Authenticator for MFA.
+    - `with_sms()`: Retrieves users using SMS for MFA.
+    - `with_email_mfa()`: Retrieves users using Email for MFA.
+    - `staff()`: Retrieves all staff users.
+    - `staff_from_site(site_id)`: Retrieves staff users from a specific site.
+    - `staff_from_organization(organization_id)`: Retrieves staff users from a specific organization.
+    - `recently_joined(days=30)`: Retrieves users who joined within the last `X` days.
+    - `recently_joined_from_site(site_id, days=30)`: Retrieves users who joined within the last `X` days from a specific site.
+    - `recently_joined_from_organization(organization_id, days=30)`: Retrieves users who joined within the last `X` days from a specific organization.
 
-    **Why Manual Foreign Keys?**
-        - Django does not support cross-database foreign key relations.
-        - Integer fields (`organization_id`, `site_id`, `created_by_id`, `modified_by_id`) are used instead of actual ForeignKey fields.
-        - Query methods work by filtering based on these integer IDs.
+Why Manual Foreign Keys?
+    - Django does not support cross-database foreign key relations.
+    - Integer fields (`organization_id`, `site_id`, `created_by_id`, `modified_by_id`) are used instead of actual ForeignKey fields.
+    - Query methods work by filtering based on these integer IDs.
 
-    **Usage Example:**
-        - `active_users = User.objects.active()`
-        - `staff_at_site = User.objects.staff_from_site(site_id=2)`
-        - `new_users = User.objects.recently_joined(days=15)`
+Usage Example:
+    - `active_users = User.objects.active()`
+    - `staff_at_site = User.objects.staff_from_site(site_id=2)`
+    - `new_users = User.objects.recently_joined(days=15)`
 """
 
 class UserManager(models.Manager):
@@ -141,22 +141,38 @@ class UserManager(models.Manager):
         return ''.join(password_list)
     
     """
-    Creates a new user while manually managing foreign key IDs.
+    Creates a new user while ensuring proper validation and unique constraints.
 
-    Handles Manual Foreign Key Assignments:
-        - `organization_id` and `site_id` are extracted as integers (not objects).
-        - `created_by_id` and `modified_by_id` are stored as IDs.
-
-    Additional Features:
-        - Normalizes email and ensures login methods are valid.
+    Purpose:
+        - Manages manual foreign key assignments (`organization_id`, `site_id`, `created_by_id`, `modified_by_id`).
+        - Ensures that only **inactive** users can share an email, username, or badge with another user.
+        - Normalizes the email before database interaction.
         - Generates a secure password and hashes it before saving.
-        - Ensures the user is stored in the `users_db` database.
+        - Saves the user in the `users_db` database.
 
-    Sends Credentials via Email (Console Mail for Development).
+    Validation Rules:
+        - Email is required.
+        - At least one login identifier is required 
+            - `username`, `badge_barcode`, or `badge_rfid`
+        - An active user cannot share:
+            - `email`, `username`, `badge_barcode`, `badge_rfid`
+        - Ensures all login identifiers are unique among active users.
+        - Prevents duplicate credentials before database insertion.
+
+    Security Measures:
+        - Automatically generates a secure password using `generate_secure_password()`.
+        - Password is securely hashed before storing.
+        - Sends credentials via email (console mail backend for development).
+
+    Guarantees that user creation follows security and uniqueness constraints.
     """
+
 
     def create_user(self, email, password=None, **extra_fields):
     
+        # Dynamically retrieve models using apps.get_model()
+        User = apps.get_model("users", "User")
+
         username = extra_fields.get("username")
         badge_barcode = extra_fields.get("badge_barcode")
         badge_rfid = extra_fields.get("badge_rfid")
@@ -164,14 +180,26 @@ class UserManager(models.Manager):
         # Ensure at least one login method is provided, with email required
         if not email:
             raise ValueError("The Email field must be set.")
+        
+        # Ensure at least one login identifier is provided
         if not any([username, badge_barcode, badge_rfid]):
             raise ValueError("At least one additional login identifier (username, badge) must be set.")
 
         # Normalize email
         extra_fields["email"] = self.normalize_email(email)
 
-        # Dynamically retrieve models using apps.get_model()
-        User = apps.get_model("users", "User")
+        # Prevent duplicate login identifiers for **active** users
+        duplicate_active_user = self.using("users_db").filter(
+            models.Q(is_active=True) & (
+                models.Q(email=extra_fields["email"]) |
+                models.Q(username=username) |
+                models.Q(badge_barcode=badge_barcode) |
+                models.Q(badge_rfid=badge_rfid)
+            )
+        ).exists()
+
+        if duplicate_active_user:
+            raise ValueError("An active user with this email, username, or badge already exists.")
 
         # Extract manually managed foreign key IDs
         organization_id = extra_fields.pop("organization_id", None)
@@ -206,21 +234,28 @@ class UserManager(models.Manager):
         return user
     
     """
-    Updates an existing user while manually managing foreign key IDs.
+    Updates an existing user while enforcing active-user uniqueness constraints 
+    and manually managing foreign key IDs.
 
-    **Manual Foreign Key Assignments:**
+    Manual Foreign Key Assignments:
         - `organization_id` and `site_id` are stored as integers (not objects).
         - `modified_by_id` is updated to track the user performing the modification.
 
-    **Additional Features:**
-        - Normalizes the email before saving (if changed).
-        - Ensures that login identifiers (`username`, `badge_barcode`, `badge_rfid`) remain valid.
-        - Allows selective updates by only modifying provided fields.
-        - Ensures the user is saved in the `users_db` database.
+    Active-User Uniqueness Constraints:
+        - Prevents modifying `email`, `username`, `badge_barcode`, or `badge_rfid` 
+            if the new value already exists in an **active** user.
+        - Allows reassignment of these fields if the user being updated is inactive.
+        - Ensures a user retains at least **one login identifier** (`username`, `badge_barcode`, or `badge_rfid`).
 
-    **Usage Example:**
+    Additional Features:
+        - Normalizes the email before saving (if changed).
+        - Allows selective updates by only modifying provided fields.
+        - Ensures changes are committed to the `users_db` database.
+
+    Usage Example:
         - `User.objects.update_user(user_id=5, modified_by_id=2, username="new_name")`
     """
+
     def update_user(self, user_id, **updated_fields):
 
         try:
@@ -247,6 +282,13 @@ class UserManager(models.Manager):
             ]):
                 raise ValueError("At least one login identifier (username, badge) must remain set.")
 
+            # Check uniqueness for active users before updating
+            for field in ["email", "username", "badge_barcode", "badge_rfid"]:
+                new_value = updated_fields.get(field)
+                if new_value and new_value != getattr(user, field):
+                    if self.using("users_db").filter(**{field: new_value, "is_active": True}).exclude(id=user.id).exists():
+                        raise ValueError(f"Active user with {field} '{new_value}' already exists.")
+
             # Assign manually managed foreign key IDs
             if organization_id is not None:
                 user.organization_id = organization_id
@@ -269,10 +311,10 @@ class UserManager(models.Manager):
     """
         Deletes a user from the users_db.
 
-        **Usage Example:**
+        Usage Example:
             - `User.objects.delete_user(user_id=3)`
 
-        **Handles:**
+        Handles:
             - Ensuring the user exists before deletion.
             - Preventing accidental deletion of superusers.
             - Removing the user only from `users_db`.
@@ -327,13 +369,13 @@ class UserManager(models.Manager):
     """
     Updates an existing superuser while manually managing foreign key IDs.
 
-    **Superuser Update Rules:**
+    Superuser Update Rules:
         - Ensures that `is_staff` and `is_superuser` remain `True`.
         - Allows updating login identifiers (`username`, `email`, etc.), but maintains required fields.
         - Tracks modifications using `modified_by_id`.
         - Saves the user in the `users_db` database.
 
-    **Usage Example:**
+    Usage Example:
         - `User.objects.update_superuser(user_id=1, modified_by_id=2, email="admin@newdomain.com")`
 
     Raises:

@@ -354,21 +354,25 @@ class UserManager(models.Manager):
             raise ValueError(f"User with ID {user_id} does not exist.")
 
     """
-    Creates and returns a superuser with full administrative access.
+    Creates a new superuser while enforcing required permissions.
 
-    Superuser Creation Rules:
-        - Automatically sets `is_staff=True` and `is_superuser=True`.
-        - Ensures only valid superusers are created.
-        - Uses `create_user()` to apply additional password security.
+    Inherits:
+        - Email normalization and login identifier validation from `create_user`.
+        - Manual foreign key handling from `create_user`.
+
+    Ensures:
+        - `is_staff=True` and `is_superuser=True` before creation.
+        - `is_active=True` to prevent accidental inactive superuser creation.
 
     Raises:
-    - `ValueError` if `is_staff` or `is_superuser` are not explicitly set to `True`.
+        - `ValueError` if `is_staff` or `is_superuser` are not explicitly set to `True`.
     """
 
     def create_superuser(self, email, username, password=None, **extra_fields):
     
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("is_active", True)  # Ensure superusers are always active
 
         if extra_fields["is_staff"] is not True or extra_fields["is_superuser"] is not True:
             raise ValueError("Superuser must have is_staff=True and is_superuser=True.")

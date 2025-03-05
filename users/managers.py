@@ -396,10 +396,14 @@ class UserManager(models.Manager):
         - `ValueError` if attempting to unset `is_staff` or `is_superuser`.
         - `ValueError` if no valid login method remains after the update.
     """
+    
     def update_superuser(self, user_id, **updated_fields):
         try:
+            # Retrieve the user model dynamically
+            User = apps.get_model("users", "User")
+
             # Retrieve the user instance from the correct database
-            user = self.get_queryset().using("users_db").get(id=user_id)
+            user = User.objects.using("users_db").get(id=user_id)
 
             # Ensure the user is a superuser
             if not user.is_superuser:
@@ -410,11 +414,12 @@ class UserManager(models.Manager):
             site_id = updated_fields.pop("site_id", None)
             modified_by_id = updated_fields.pop("modified_by_id", None)
 
+            # Prevent deactivating a superuser
+            updated_fields["is_active"] = True
+
             # Ensure `is_staff` and `is_superuser` remain True
-            if "is_staff" in updated_fields and not updated_fields["is_staff"]:
-                raise ValueError("Superuser must have is_staff=True.")
-            if "is_superuser" in updated_fields and not updated_fields["is_superuser"]:
-                raise ValueError("Superuser must have is_superuser=True.")
+            updated_fields["is_staff"] = True
+            updated_fields["is_superuser"] = True
 
             # Normalize email if provided
             if "email" in updated_fields:
@@ -436,7 +441,7 @@ class UserManager(models.Manager):
             if modified_by_id is not None:
                 user.modified_by_id = modified_by_id
 
-            # Update the user fields with provided values
+            # Update only the provided fields
             for field, value in updated_fields.items():
                 setattr(user, field, value)
 
@@ -444,7 +449,7 @@ class UserManager(models.Manager):
             user.save(using="users_db")
             return user
 
-        except self.model.DoesNotExist:
+        except User.DoesNotExist:
             raise ValueError(f"Superuser with ID {user_id} does not exist.")
 
     """

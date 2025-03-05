@@ -45,7 +45,7 @@ class User(AbstractBaseUser):
     ]
 
     id = models.BigAutoField(primary_key=True)
-    email = models.EmailField(blank=False, null=False, db_index=True, verbose_name=_('Email Address'))
+    email = models.EmailField(unique= True, blank=False, null=False, db_index=True, verbose_name=_('Email Address'))
     username = models.CharField(max_length=30, unique=True, null=True, blank=True, db_index=True, verbose_name=_('Username'))
     password = models.CharField(max_length=128, verbose_name=_("Password"))
     first_name = models.CharField(max_length=30, null=True, blank=True, db_index=True, verbose_name=_('First Name'))

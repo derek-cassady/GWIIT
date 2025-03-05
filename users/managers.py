@@ -189,7 +189,7 @@ class UserManager(models.Manager):
         extra_fields["email"] = self.normalize_email(email)
 
         # Prevent duplicate login identifiers for **active** users
-        duplicate_active_user = self.using("users_db").filter(
+        duplicate_active_user = User.objects.using("users_db").filter(
             models.Q(is_active=True) & (
                 models.Q(email=extra_fields["email"]) |
                 models.Q(username=username) |

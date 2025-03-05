@@ -309,19 +309,25 @@ class UserManager(models.Manager):
             raise ValueError(f"User with ID {user_id} does not exist.")
 
     """
-        Deletes a user from the users_db.
+    Soft-deletes a user by setting `is_active=False` instead of permanently deleting them.
 
-        Usage Example:
-            - `User.objects.delete_user(user_id=3)`
+    Purpose:
+        - Preserves user records for auditability and historical reference.
+        - Prevents unintended behaviors caused by hard deletion.
+        - Ensures compliance with unique constraints on active users.
+        - Prevents accidental deletion of superusers.
 
-        Handles:
-            - Ensuring the user exists before deletion.
-            - Preventing accidental deletion of superusers.
-            - Removing the user only from `users_db`.
+    Behavior:
+        - Sets `is_active=False` to deactivate the user.
+        - Retains all unique identifiers (`email`, `username`, `badge_barcode`, `badge_rfid`).
+        - Allows recovery by reactivating the user (`is_active=True` if needed).
 
-        Raises:
-            - `ValueError` if the user does not exist.
-            - `ValueError` if trying to delete a superuser.
+    Usage Example:
+        - `User.objects.delete_user(user_id=3)`
+
+    Raises:
+        - `ValueError` if the user does not exist.
+        - `ValueError` if attempting to delete a superuser.
     """
     def delete_user(self, user_id):
 
@@ -336,9 +342,13 @@ class UserManager(models.Manager):
             if user.is_superuser:
                 raise ValueError("Cannot delete a superuser using this method. Use `delete_superuser()` instead.")
 
-            # Delete the user
-            user.delete(using="users_db")
-            return f"User with ID {user_id} deleted successfully."
+            # Soft-delete: Deactivate the user but retain all data
+            user.is_active = False
+
+            # Save changes
+            user.save(using="users_db")
+
+            return f"User with ID {user_id} has been deactivated."
 
         except User.DoesNotExist:
             raise ValueError(f"User with ID {user_id} does not exist.")

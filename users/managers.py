@@ -381,13 +381,15 @@ class UserManager(models.Manager):
 
 
     """
-    Updates an existing superuser while manually managing foreign key IDs.
+    Updates an existing superuser while enforcing required permissions.
 
     Superuser Update Rules:
-        - Ensures that `is_staff` and `is_superuser` remain `True`.
-        - Allows updating login identifiers (`username`, `email`, etc.), but maintains required fields.
+        - Prevents accidental deactivation (`is_active` is always `True`).
+        - Ensures that `is_staff=True` and `is_superuser=True` remain unchanged.
+        - Allows updating login identifiers (`username`, `email`, `badge_barcode`, `badge_rfid`), but ensures at least one remains.
+        - Normalizes email before saving (if updated).
         - Tracks modifications using `modified_by_id`.
-        - Saves the user in the `users_db` database.
+        - Saves changes only in the `users_db` database.
 
     Usage Example:
         - `User.objects.update_superuser(user_id=1, modified_by_id=2, email="admin@newdomain.com")`
@@ -395,6 +397,7 @@ class UserManager(models.Manager):
     Raises:
         - `ValueError` if attempting to unset `is_staff` or `is_superuser`.
         - `ValueError` if no valid login method remains after the update.
+        - `ValueError` if the specified user is not a superuser.
     """
     
     def update_superuser(self, user_id, **updated_fields):
@@ -453,33 +456,41 @@ class UserManager(models.Manager):
             raise ValueError(f"Superuser with ID {user_id} does not exist.")
 
     """
-    Updates a superuser while ensuring `is_staff=True` and `is_superuser=True`.
+    Deactivates a superuser instead of permanently deleting the record.
 
-    Enforces:
-        - `is_superuser` status is never removed.
-        - `is_staff` remains True.
-        - At least one login identifier (username, badge) is always set.
+    Superuser Deletion Rules:
+        - Ensures that at least **one active superuser** remains.
+        - Uses **soft delete** (`is_active=False`) instead of actual deletion.
+        - Prevents potential race conditions by locking the query (`select_for_update()`).
+        - Saves changes in the `users_db` database.
+
+    Usage Example:
+        - `User.objects.delete_superuser(user_id=5)`
 
     Raises:
-        - ValueError if user does not exist or is not a superuser.
-        - ValueError if `is_staff` or `is_superuser` is set to False.
-        - ValueError if no login identifier remains.
+        - `ValueError` if attempting to deactivate the last active superuser.
+        - `ValueError` if the specified superuser does not exist.
     """
     
     def delete_superuser(self, user_id):
         try:
+            # Retrieve the user model dynamically
+            User = apps.get_model("users", "User")
+
             # Retrieve the superuser instance
-            superuser = self.get_queryset().using("users_db").get(id=user_id, is_superuser=True)
+            superuser = User.objects.using("users_db").select_for_update().get(id=user_id, is_superuser=True)
 
             # Prevent deleting the last superuser
-            if self.get_queryset().using("users_db").filter(is_superuser=True).count() == 1:
-                raise ValueError("Cannot delete the last remaining superuser.")
+            if User.objects.using("users_db").filter(is_superuser=True, is_active=True).count() == 1:
+                raise ValueError("Cannot deactivate the last remaining active superuser.")
 
-            # Delete the superuser
-            superuser.delete(using="users_db")
-            return f"Superuser with ID {user_id} deleted successfully."
+            # Perform a soft delete instead of actual deletion
+            superuser.is_active = False
+            superuser.save(using="users_db")
 
-        except self.model.DoesNotExist:
+            return f"Superuser with ID {user_id} has been deactivated."
+
+        except User.DoesNotExist:
             raise ValueError(f"Superuser with ID {user_id} does not exist.")
 
     """

@@ -45,13 +45,13 @@ class User(AbstractBaseUser):
     ]
 
     id = models.BigAutoField(primary_key=True)
-    email = models.EmailField(unique= True, blank=False, null=False, db_index=True, verbose_name=_('Email Address'))
-    username = models.CharField(max_length=30, unique=True, null=True, blank=True, db_index=True, verbose_name=_('Username'))
+    email = models.EmailField(blank=False, null=False, db_index=True, verbose_name=_('Email Address'))
+    username = models.CharField(max_length=30, null=True, blank=True, db_index=True, verbose_name=_('Username'))
     password = models.CharField(max_length=128, verbose_name=_("Password"))
     first_name = models.CharField(max_length=30, null=True, blank=True, db_index=True, verbose_name=_('First Name'))
     last_name = models.CharField(max_length=30, null=True, blank=True, db_index=True, verbose_name=_('Last Name'))
-    badge_barcode = models.CharField(max_length=100, unique=True, null=True, blank=True, db_index=True, verbose_name=_('Badge Barcode'))
-    badge_rfid = models.CharField(max_length=100, unique=True, null=True, blank=True, db_index=True, verbose_name=_('Badge RFID'))
+    badge_barcode = models.CharField(max_length=100, null=True, blank=True, db_index=True, verbose_name=_('Badge Barcode'))
+    badge_rfid = models.CharField(max_length=100, null=True, blank=True, db_index=True, verbose_name=_('Badge RFID'))
     
     # Store IDs for manual foreign key handling
     organization_id = models.IntegerField(null=True, blank=True, verbose_name=_('Organization ID'))
@@ -76,7 +76,7 @@ class User(AbstractBaseUser):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ['username', 'badge_barcode', 'badge_rfid']
 
     """
     Metadata options for the model:

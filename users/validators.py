@@ -19,12 +19,12 @@ class CustomPasswordValidator:
             raise ValidationError(_("Password must contain at least one lowercase letter."), code='password_no_lower')
         if not re.search(r'\d', password):
             raise ValidationError(_("Password must contain at least one digit."), code='password_no_digit')
-        if not re.search(r'[!@#$%^&*()_+\-=\[\]{};:"\'\\|,.<>?/]', password):
+        if not re.search(r'[@#$%^&*()-_+=]', password):
             raise ValidationError(_("Password must contain at least one special character."), code='password_no_special')
 
     def get_help_text(self):
         """Returns a description of the password rules."""
         return _(
-            "Your password must contain at least one uppercase letter, one lowercase letter, "
-            "one special character (@, #, $, etc.), and one digit."
+            "Your password must contain at least one uppercase letter, one lowercase letter, one digit, and "
+            "one special character (@ # $ % ^ & * ( ) - _ + =)"
         )

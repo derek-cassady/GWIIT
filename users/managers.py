@@ -188,6 +188,11 @@ class UserManager(models.Manager):
         # Normalize email
         extra_fields["email"] = self.normalize_email(email)
 
+        # Ensure is_active is explicitly set
+        if "is_active" not in extra_fields:
+            extra_fields["is_active"] = True
+
+
         # Prevent duplicate login identifiers for **active** users
         duplicate_active_user = User.objects.using("users_db").filter(
             models.Q(is_active=True) & (
@@ -207,8 +212,9 @@ class UserManager(models.Manager):
         created_by_id = extra_fields.pop("created_by_id", None)
         modified_by_id = extra_fields.pop("modified_by_id", None)
 
-        # Generate a secure password
-        password = self.generate_secure_password()
+        # Generate a secure password if none is provided
+        if password is None:
+            password = self.generate_secure_password()
 
         # Create the user instance dynamically
         user = User(**extra_fields)
@@ -222,6 +228,17 @@ class UserManager(models.Manager):
 
         # Ensure the user is saved in the correct database
         user.save(using="users_db")
+
+        # Build login details for the email
+        login_info = {
+            "Email": user.email,
+            "Username": user.username,
+            "Badge Barcode": user.badge_barcode,
+            "Badge RFID": user.badge_rfid,
+        }
+
+        # Only include non-empty values in the email message
+        login_details = "\n".join(f"{key}: {value}" for key, value in login_info.items() if value)
 
         # Send credentials via email (Django console mail for development)
         send_mail(
@@ -263,7 +280,7 @@ class UserManager(models.Manager):
             User = apps.get_model("users", "User")
 
             # Retrieve the user instance from the correct database
-            user = self.get_queryset().using("users_db").get(id=user_id)
+            user = User.objects.using("users_db").get(id=user_id)
 
             # Extract manually managed foreign key IDs
             organization_id = updated_fields.pop("organization_id", None)
@@ -282,12 +299,30 @@ class UserManager(models.Manager):
             ]):
                 raise ValueError("At least one login identifier (username, badge) must remain set.")
 
-            # Check uniqueness for active users before updating
-            for field in ["email", "username", "badge_barcode", "badge_rfid"]:
+            print(User.objects.using("users_db").values("id", "email", "is_active"))
+
+            # Prevent duplicate active users BEFORE saving to avoid IntegrityError
+            fields_to_check = ["email", "username", "badge_barcode", "badge_rfid"]
+            q_objects = models.Q(is_active=True)  # Ensure we're only checking active users
+
+            for field in fields_to_check:
                 new_value = updated_fields.get(field)
-                if new_value and new_value != getattr(user, field):
-                    if self.using("users_db").filter(**{field: new_value, "is_active": True}).exclude(id=user.id).exists():
-                        raise ValueError(f"Active user with {field} '{new_value}' already exists.")
+                if new_value and new_value != getattr(user, field):  # Only check if field is changing
+                    q_objects &= models.Q(**{field: new_value})
+
+            # If at least one field is changing, check for conflicts
+            if any(updated_fields.get(field) for field in fields_to_check):
+                conflict_query = models.Q(is_active=True) & models.Q(
+                    models.Q(email=updated_fields.get("email")) |
+                    models.Q(username=updated_fields.get("username")) |
+                    models.Q(badge_barcode=updated_fields.get("badge_barcode")) |
+                    models.Q(badge_rfid=updated_fields.get("badge_rfid"))
+                )
+
+                existing_user = User.objects.using("users_db").filter(conflict_query).exclude(id=user.id).first()
+                                
+                if existing_user:
+                    raise ValueError("An active user with this email, username, or badge already exists.")
 
             # Assign manually managed foreign key IDs
             if organization_id is not None:
@@ -306,7 +341,8 @@ class UserManager(models.Manager):
             return user
 
         except User.DoesNotExist:
-            raise ValueError(f"User with ID {user_id} does not exist.")
+            print(f"ERROR: User with ID {user_id} does not exist.")
+        raise ValueError(f"User with ID {user_id} does not exist.") 
 
     """
     Soft-deletes a user by setting `is_active=False` instead of permanently deleting them.

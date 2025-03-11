@@ -115,6 +115,9 @@ class UserManager(models.Manager):
         if length < 16:
             raise ValueError("Password length must be at least 16 characters to comply with security policies.")
 
+        # Define allowed special characters explicitly
+        SPECIAL_CHARACTERS = ["@", "#", "$", "%", "^", "&", "*", "(", ")", "-", "_", "+", "="]
+        
         # Required character sets:
 
         # Ensures at least one uppercase
@@ -127,7 +130,7 @@ class UserManager(models.Manager):
         digit = secrets.choice(string.digits)
         
         # Ensures at least one special character
-        special = secrets.choice(string.punctuation)
+        special = secrets.choice(SPECIAL_CHARACTERS)
 
         # Remaining random characters
         remaining_length = length - 4

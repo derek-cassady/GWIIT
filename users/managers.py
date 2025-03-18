@@ -221,6 +221,10 @@ class UserManager(models.Manager):
         if password is None:
             password = self.generate_secure_password()
 
+        # Validate password after generation
+        if not password or not isinstance(password, str) or password.strip() == "":
+            raise ValueError("A valid password must be set and cannot be blank.")
+
         # Directly assign all user attributes BEFORE saving
         user = User(**extra_fields)
         user.username = username

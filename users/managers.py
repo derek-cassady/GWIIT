@@ -117,33 +117,39 @@ class UserManager(models.Manager):
         if length < 16:
             raise ValueError("Password length must be at least 16 characters to comply with security policies.")
 
-        # Define allowed special characters explicitly
         SPECIAL_CHARACTERS = ["@", "#", "$", "%", "^", "&", "*", "(", ")", "-", "_", "+", "="]
-        
-        # Required character sets:
+        system_random = secrets.SystemRandom()
 
-        # Ensures at least one uppercase
-        uppercase = secrets.choice(string.ascii_uppercase)
-        
-        # Ensures at least one lowercase
-        lowercase = secrets.choice(string.ascii_lowercase)
-        
-        # Ensures at least one digit
-        digit = secrets.choice(string.digits)
-        
-        # Ensures at least one special character
-        special = secrets.choice(SPECIAL_CHARACTERS)
+        try:
+            # Required characters from each category
+            uppercase = secrets.choice(string.ascii_uppercase)
+            lowercase = secrets.choice(string.ascii_lowercase)
+            digit = secrets.choice(string.digits)
+            special = secrets.choice(SPECIAL_CHARACTERS)
+        except IndexError as e:
+            raise ValueError(f"Character set missing required characters: {e}")
 
-        # Remaining random characters
+        # All allowed characters: limit special chars to the approved list
+        allowed_chars = string.ascii_letters + string.digits + ''.join(SPECIAL_CHARACTERS)
+
+        # Remaining characters
         remaining_length = length - 4
-        all_characters = string.ascii_letters + string.digits + string.punctuation
-        random_chars = [secrets.choice(all_characters) for _ in range(remaining_length)]
+        random_chars = [secrets.choice(allowed_chars) for _ in range(remaining_length)]
 
-        # Combine all characters and shuffle
+        # Combine required and random characters
         password_list = [uppercase, lowercase, digit, special] + random_chars
-        random.shuffle(password_list)
+        system_random.shuffle(password_list)
 
-        return ''.join(password_list)
+        password = ''.join(password_list)
+
+        # validation to check inclusion of all categories
+        if not (any(c.isupper() for c in password) and
+                any(c.islower() for c in password) and
+                any(c.isdigit() for c in password) and
+                any(c in SPECIAL_CHARACTERS for c in password)):
+            raise ValueError("Generated password does not meet complexity requirements.")
+
+        return password
     
     """
     Creates a new user while ensuring proper validation and unique constraints.

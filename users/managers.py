@@ -1,11 +1,13 @@
 from django.db import models
 from django.apps import apps
 from django.core.mail import send_mail
+import smtplib
 from django.utils.timezone import now, timedelta
 import random
 import string
 import secrets
 import re
+import textwrap
 
 """
 Custom Manager for the User Model
@@ -219,9 +221,17 @@ class UserManager(models.Manager):
         if password is None:
             password = self.generate_secure_password()
 
-        # Create the user instance dynamically
+        # Directly assign all user attributes BEFORE saving
         user = User(**extra_fields)
-        user.set_password(password)  # Hash the password
+        user.username = username
+        user.badge_barcode = badge_barcode
+        user.badge_rfid = badge_rfid
+
+        # Store a copy before hashing
+        plaintext_password = password
+
+        # Hash the password
+        user.set_password(password)
 
         # Assign manually managed foreign key IDs
         user.organization_id = organization_id
@@ -231,6 +241,9 @@ class UserManager(models.Manager):
 
         # Ensure the user is saved in the correct database
         user.save(using="users_db")
+
+        # Refresh the user from the database to ensure values were saved correctly
+        user.refresh_from_db()
 
         # Build login details for the email
         login_info = {
@@ -244,14 +257,36 @@ class UserManager(models.Manager):
         login_details = "\n".join(f"{key}: {value}" for key, value in login_info.items() if value)
 
         # Send credentials via email (Django console mail for development)
-        send_mail(
-            subject="Your Account Credentials",
-            message=f"Your account has been created.\nEmail: {user.email}\nTemporary Password: {password}",
-            from_email="noreply@example.com",
-            recipient_list=[user.email],
-            fail_silently=True,
-        )
-        return user
+        try:
+            send_mail(
+                subject="Your Account Credentials",
+                message = textwrap.dedent(
+                    f"""\
+                        Your account has been created successfully!
+
+                        Below are your login credentials:
+
+                        {login_details}
+
+                        Temporary Password: {plaintext_password}
+
+                        Please log in and update your password as soon as possible.
+
+                        Regards,
+                        Support Team
+                    """),
+                from_email="noreply@example.com",
+                recipient_list=[user.email],
+                fail_silently=False,
+            )
+            email_sent = True
+        # Error Handling
+        except (smtplib.SMTPException, smtplib.SMTPRecipientsRefused, smtplib.SMTPDataError, ConnectionError, OSError) as e:
+            # Change to log error after implementing logging.
+            print(f"Failed to send email to {user.email}. Reason: {str(e)}")
+            email_sent = False
+
+        return user, email_sent
     
     """
     Updates an existing user while enforcing active-user uniqueness constraints 

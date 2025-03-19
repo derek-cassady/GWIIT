@@ -165,30 +165,23 @@ class UserManager(models.Manager):
         return password
     
     """
-    Creates a new user while ensuring proper validation and unique constraints.
+    Creates a new user with the required fields and handles secure password generation, validation, 
+        and email notification with login credentials.
 
-    Purpose:
-        - Manages manual foreign key assignments (`organization_id`, `site_id`, `created_by_id`, `modified_by_id`).
-        - Ensures that only **inactive** users can share an email, username, or badge with another user.
-        - Normalizes the email before database interaction.
-        - Generates a secure password and hashes it before saving.
-        - Saves the user in the `users_db` database.
+    Key Behaviors:
+        - Requires email and at least one login identifier (username, badge_barcode, or badge_rfid).
+        - Normalizes the email field for consistency.
+        - Prevents creating duplicate active users based on unique login identifiers.
+        - Generates a secure password if none is provided and validates password complexity.
+        - Manually handles foreign key assignments due to multi-database architecture.
+        - Saves the user to the 'users_db' database and refreshes the instance.
+        - Sends a formatted email containing login credentials and the generated password.
+        - Catches email delivery failures and flags the `email_sent` status.
 
-    Validation Rules:
-        - Email is required.
-        - At least one login identifier is required 
-            - `username`, `badge_barcode`, or `badge_rfid`
-        - An active user cannot share:
-            - `email`, `username`, `badge_barcode`, `badge_rfid`
-        - Ensures all login identifiers are unique among active users.
-        - Prevents duplicate credentials before database insertion.
-
-    Security Measures:
-        - Automatically generates a secure password using `generate_secure_password()`.
-        - Password is securely hashed before storing.
-        - Sends credentials via email (console mail backend for development).
-
-    Guarantees that user creation follows security and uniqueness constraints.
+    Returns:
+        tuple: (User instance, email_sent boolean flag)
+    Raises:
+        ValueError: If required fields are missing, duplicate active user is found, or password is invalid.
     """
 
 

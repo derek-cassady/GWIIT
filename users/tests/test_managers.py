@@ -6,8 +6,13 @@ from organizations.models import Organization
 from sites.models import Site
 from django.utils.timezone import now
 from datetime import timedelta
+from django.core import mail
+from django.core.mail import send_mail
+from unittest.mock import patch
+import smtplib
 import time
 import string
+from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import check_password
 # https://docs.djangoproject.com/en/5.1/topics/testing/tools/
 
@@ -57,7 +62,6 @@ class UserModelTests(TestCase):
         - Can be expanded later to initialize class-wide configurations.
 
     Notes:
-        - Currently, this method only prints a status message.
         - Future modifications may include logging, database preparation, or resource allocation.
     """
 
@@ -109,7 +113,7 @@ class UserModelTests(TestCase):
         
         # Create test organizations
         self.organization1 = Organization.objects.using("organizations_db").create(
-            id = "1",
+            #id = "1",
             name="Test Organization 1",
             type_id=1,
             active=True,
@@ -123,7 +127,7 @@ class UserModelTests(TestCase):
         )
 
         self.organization2 = Organization.objects.using("organizations_db").create(
-            id = "2",
+            #id = "2",
             name="Test Organization 2",
             type_id=2,
             active=True,
@@ -138,7 +142,7 @@ class UserModelTests(TestCase):
 
         # Create test sites
         self.site1 = Site.objects.using("sites_db").create(
-            id = "1",
+            #id = "1",
             name="Test Site 1",
             organization_id=self.organization1.id,
             site_type="Office",
@@ -151,7 +155,7 @@ class UserModelTests(TestCase):
         )
 
         self.site2 = Site.objects.using("sites_db").create(
-            id = "2",
+            #id = "2",
             name="Test Site 2",
             organization_id=self.organization2.id,
             site_type="Warehouse",
@@ -165,10 +169,9 @@ class UserModelTests(TestCase):
 
         # Create multiple test users with different attributes
         self.user1 = User.objects.using("users_db").create(
-            id = "1",
+            #id = "1",
             email="user1@example.com",
             username="userone",
-            password="SecurePass123!",
             first_name="Alice",
             last_name="Smith",
             organization_id=self.organization1.id,
@@ -183,8 +186,11 @@ class UserModelTests(TestCase):
             date_joined=now() - timedelta(days=5)
         )
 
+        self.user1.set_password("SecurePass123!")
+        self.user1.save(using="users_db")
+
         self.user2 = User.objects.using("users_db").create(
-            id = "2",
+            #id = "2",
             email="user2@example.com",
             username="usertwo",
             password="SecurePass123!",
@@ -202,8 +208,11 @@ class UserModelTests(TestCase):
             date_joined=now() - timedelta(days=40)
         )
 
+        self.user2.set_password("SecurePass123!")
+        self.user2.save(using="users_db")
+
         self.user3 = User.objects.using("users_db").create(
-            id = "3",
+            #id = "3",
             email="user3@example.com",
             username="userthree",
             password="SecurePass123!",
@@ -221,8 +230,11 @@ class UserModelTests(TestCase):
             date_joined=now() - timedelta(days=15)
         )
 
+        self.user3.set_password("SecurePass123!")
+        self.user3.save(using="users_db")
+
         self.user4 = User.objects.using("users_db").create(
-            id = "4",
+            #id = "4",
             email="user4@example.com",
             username="userfour",
             password="SecurePass123!",
@@ -239,6 +251,9 @@ class UserModelTests(TestCase):
             modified_by_id=self.user2.id,
             date_joined=now()
         )
+
+        self.user4.set_password("SecurePass123!")
+        self.user4.save(using="users_db")
 
     """
     Verifies that the test organization exists after setup.
@@ -582,8 +597,8 @@ class UserModelTests(TestCase):
     # Test 9c-4: Ensure password contains at least one special character
     def test_users_test_managers_UserManager_generate_secure_password_contains_special_character(self):
         password = self.user_manager.generate_secure_password()
-        has_special = any(c in string.punctuation for c in password)
-        self.assertTrue(has_special, "Password missing a special character.")
+        has_special = any(c in self.user_manager.SPECIAL_CHARACTERS for c in password)
+        self.assertTrue(has_special, "Password missing a special character from the approved set.")
 
     # Test 9d: Ensure generated passwords are unique
     def test_users_test_managers_UserManager_generate_secure_password_uniqueness(self):
@@ -595,6 +610,26 @@ class UserModelTests(TestCase):
 
         with self.assertRaises(ValueError, msg="Password length below 16 should raise a ValueError."):
             self.user_manager.generate_secure_password(length=12)
+
+    # Test 9f: Raises ValueError if required character sets are empty
+    def test_users_test_managers_UserManager_generate_secure_password_raises_if_charset_missing(self):
+        manager = self.user_manager
+
+        # Patch 'SPECIAL_CHARACTERS' to an empty list to force IndexError
+        with patch("users.managers.secrets.choice", side_effect=IndexError("Empty sequence")):
+            with self.assertRaises(ValueError) as context:
+                manager.generate_secure_password()
+            self.assertIn("Character set missing required characters", str(context.exception))
+    
+    # Test 9g: Raises ValueError if final password fails complexity check
+    def test_users_test_managers_UserManager_generate_secure_password_complexity_check_fails(self):
+        manager = self.user_manager
+
+        # Patch secrets.choice and random_chars to force bad password output
+        with patch("users.managers.secrets.choice", return_value="a"):  # Force lowercase
+            with self.assertRaises(ValueError) as context:
+                manager.generate_secure_password()
+            self.assertIn("Generated password does not meet complexity requirements", str(context.exception))
 
     """
     Tests the create_user() method in UserManager to ensure correct user creation and error handling.
@@ -630,7 +665,7 @@ class UserModelTests(TestCase):
 
     # Test 10a: Ensure a user can be created successfully
     def test_users_test_managers_UserManager_create_user_success(self):
-        user = self.user_manager.create_user(
+        user, _ = self.user_manager.create_user(
             email="user5@example.com",
             username="userfive",
             password=None,  # Auto-generated
@@ -642,14 +677,14 @@ class UserModelTests(TestCase):
         )
 
         self.assertIsInstance(user, User, "User creation failed, did not return a User instance.")
-        
+
     # Test 10b: Ensure the email is normalized correctly
     def test_users_test_managers_UserManager_create_user_email_normalization(self):
         unique_timestamp = int(time.time())
         raw_email = f"  NEWUSER_{unique_timestamp}@EXAMPLE.COM  "
         expected_email = raw_email.strip().lower()
 
-        user = self.user_manager.create_user(
+        user, _ = self.user_manager.create_user(
             email=raw_email,
             username=f"testuser_{unique_timestamp}",
             password=None,
@@ -667,7 +702,7 @@ class UserModelTests(TestCase):
         unique_timestamp = int(time.time())
         raw_email = f"  NEWUSER_{unique_timestamp}@EXAMPLE.COM  "
 
-        user = self.user_manager.create_user(
+        user, _ = self.user_manager.create_user(
             email=raw_email,
             username=f"testuser_{unique_timestamp}",
             password=None,
@@ -680,7 +715,64 @@ class UserModelTests(TestCase):
 
         self.assertTrue(user.password.startswith("pbkdf2_"), "Password should be hashed.")
     
-    # Test 10d: Ensure missing email raises ValueError
+    # Test 10d: Ensure generated password contains at least one uppercase letter
+    def test_UserManager_generate_secure_password_contains_uppercase(self):
+        password = self.user_manager.generate_secure_password()
+        self.assertTrue(any(c.isupper() for c in password), "Password must contain at least one uppercase letter.")
+
+    # Test 10e: Ensure generated password contains at least one lowercase letter
+    def test_UserManager_generate_secure_password_contains_lowercase(self):
+        password = self.user_manager.generate_secure_password()
+        self.assertTrue(any(c.islower() for c in password), "Password must contain at least one lowercase letter.")
+
+    # Test 10f: Ensure generated password contains at least one digit
+    def test_UserManager_generate_secure_password_contains_digit(self):
+        password = self.user_manager.generate_secure_password()
+        self.assertTrue(any(c.isdigit() for c in password), "Password must contain at least one digit.")
+
+    # Test 10g: Ensure generated password contains at least one special character
+    def test_UserManager_generate_secure_password_contains_special_character(self):
+        special_characters = "@#$%^&+="
+        password = self.user_manager.generate_secure_password()
+        self.assertTrue(any(c in special_characters for c in password), "Password must contain at least one special character.")
+
+    # Test 10h: Ensure generated password meets minimum length requirement
+    def test_UserManager_generate_secure_password_meets_length_requirement(self):
+        password = self.user_manager.generate_secure_password()
+        self.assertGreaterEqual(len(password), 12, "Password must be at least 12 characters long.")
+    
+    # Test 10i: Ensure newly created users are active by default
+    def test_UserManager_create_user_defaults_is_active_to_true(self):
+        user, _  = self.user_manager.create_user(
+            email="defaultactive@example.com",
+            username="defaultactiveuser",
+            password=None,
+            first_name="Jane",
+            last_name="Doe",
+            organization_id=self.organization1.id,
+            site_id=self.site1.id,
+            created_by_id=None,
+        )
+
+        self.assertTrue(user.is_active, "New users should be active by default.")
+
+    # Test 10j: Ensure is_active=False when explicitly set
+    def test_UserManager_create_user_explicitly_sets_is_active_false(self):
+        user, _  = self.user_manager.create_user(
+            email="inactiveuser@example.com",
+            username="inactiveuser",
+            password=None,
+            first_name="John",
+            last_name="Doe",
+            organization_id=self.organization1.id,
+            site_id=self.site1.id,
+            created_by_id=None,
+            is_active=False,  # Explicitly setting is_active=False
+        )
+
+        self.assertFalse(user.is_active, "User should remain inactive when explicitly set to False.")
+    
+    # Test 10k: Ensure missing email raises ValueError
     def test_users_test_managers_UserManager_create_user_missing_email_fails(self):
         with self.assertRaises(ValueError, msg="Expected ValueError when creating a user without an email."):
             self.user_manager.create_user(
@@ -692,8 +784,8 @@ class UserModelTests(TestCase):
                 organization_id=self.organization1.id,
                 site_id=self.site1.id,
             )
-
-    # Test 10e: Ensure missing login identifier raises ValueError
+    
+    # Test 10l: Ensure missing login identifier raises ValueError
     def test_users_test_managers_UserManager_create_user_missing_login_identifier_fails(self):
         with self.assertRaises(ValueError, msg="Expected ValueError when creating a user without a login identifier."):
             self.user_manager.create_user(
@@ -706,28 +798,54 @@ class UserModelTests(TestCase):
                 last_name="Doe",
                 organization_id=self.organization1.id,
                 site_id=self.site1.id,
-            ) 
+            )
+            
+    # Test 10m: Ensure duplicate username raises ValueError
+    def test_users_test_managers_UserManager_create_user_duplicate_username_fails(self):
+        with self.assertRaises(ValueError, msg="Expected ValueError when creating a user with a duplicate username."):
+            self.user_manager.create_user(
+                email="uniqueuser@example.com",
+                username=self.user1.username,  # Duplicate username from setUp()
+                password=None,
+                first_name="John",
+                last_name="Doe",
+                organization_id=self.organization1.id,
+                site_id=self.site1.id,
+            )
 
-    # Test 10f: Ensure duplicate email raises ValueError
+    # Test 10n: Ensure duplicate badge_barcode raises ValueError
+    def test_users_test_managers_UserManager_create_user_duplicate_badge_barcode_fails(self):
+        with self.assertRaises(ValueError, msg="Expected ValueError when creating a user with a duplicate badge barcode."):
+            self.user_manager.create_user(
+                email="barcodeuser@example.com",
+                username="barcodeuser",
+                badge_barcode=self.user1.badge_barcode,  # Duplicate barcode from setUp()
+                password=None,
+                first_name="John",
+                last_name="Doe",
+                organization_id=self.organization1.id,
+                site_id=self.site1.id,
+            )
+
+    # Test 10o: Ensure duplicate badge_rfid raises ValueError
+    def test_users_test_managers_UserManager_create_user_duplicate_badge_rfid_fails(self):
+        with self.assertRaises(ValueError, msg="Expected ValueError when creating a user with a duplicate badge RFID."):
+            self.user_manager.create_user(
+                email="rfiduser@example.com",
+                username="rfiduser",
+                badge_rfid=self.user1.badge_rfid,  # Duplicate RFID from setUp()
+                password=None,
+                first_name="John",
+                last_name="Doe",
+                organization_id=self.organization1.id,
+                site_id=self.site1.id,
+            )
+
+    # Test 10p: Ensure duplicate email raises ValueError
     def test_users_test_managers_UserManager_create_user_duplicate_email_fails(self):
-        unique_timestamp = int(time.time())
-        raw_email = f"  NEWUSER_{unique_timestamp}@EXAMPLE.COM  "
-        expected_email = raw_email.strip().lower()
-
-        self.user_manager.create_user(
-            email=raw_email,
-            username=f"testuser_{unique_timestamp}",
-            password=None,
-            first_name="Jane",
-            last_name="Doe",
-            organization_id=self.organization1.id,
-            site_id=self.site1.id,
-            created_by_id=None,
-        )
-
         with self.assertRaises(ValueError, msg="Expected ValueError when creating a user with a duplicate email."):
             self.user_manager.create_user(
-                email=expected_email,  # Duplicate email
+                email=self.user1.email,  # Duplicate email from setUp()
                 username="duplicateuser",
                 password=None,
                 first_name="John",
@@ -736,840 +854,339 @@ class UserModelTests(TestCase):
                 site_id=self.site1.id,
             )
 
-    """
-    Tests the v method in UserManager to ensure correct user updates.
+    # Test 10q: Ensure a user can be created with all unique identifiers
+    def test_UserManager_create_user_with_all_unique_identifiers(self):
+        user, _  = self.user_manager.create_user(
+            email="multiiduser@example.com",
+            username="multiiduser",
+            password=None,
+            first_name="Alex",
+            last_name="Smith",
+            organization_id=self.organization1.id,
+            site_id=self.site1.id,
+            created_by_id=None,
+            badge_barcode="BARCODE99999",
+            badge_rfid="RFID99999",
+        )
 
-    Purpose:
-        - Verifies that user attributes can be updated successfully.
-        - Ensures that email normalization is applied correctly.
-        - Confirms that foreign key fields update properly.
-        - Enforces login identifier constraints.
-        - Tests error handling for invalid user updates.
+        # Refresh from the database to confirm it was saved
+        # If user was not saved in db, calling "refresh_from_db()" will raise "User.DoesNotExist" error.
+        user.refresh_from_db()
 
-    Verification Steps:
-        1. **Update Username**:
-            - Modifies the username and confirms persistence in the database.
-        2. **Normalize Email on Update**:
-            - Provides an untrimmed and uppercase email, then checks if it is normalized.
-        3. **Update Foreign Key Fields**:
-            - Changes `organization_id` and `site_id`, then verifies updates.
-        4. **Ensure Login Identifiers Remain Valid**:
-            - Attempts to remove all login identifiers (username, badge), which should raise a `ValueError`.
-        5. **Handle Non-Existent User Update**:
-            - Tries to update a user that does not exist and confirms that a `ValueError` is raised.
+        self.assertIsInstance(user, User, "User creation failed when using all unique identifiers.")
 
-    Guarantees that `update_user()` correctly enforces constraints and persists data accurately.
-    """
+    # Test 10r_1: Ensure an inactive user can have a duplicate email
+    def test_UserManager_inactive_user_can_have_duplicate_email(self):
+        inactive_user, _  = self.user_manager.create_user(
+            email=self.user2.email,  # Duplicate email from existing inactive user
+            username="newinactiveuser",
+            password=None,
+            first_name="Test",
+            last_name="User",
+            organization_id=self.organization1.id,
+            site_id=self.site1.id,
+            created_by_id=None,
+            badge_barcode="NEWBARCODE",
+            badge_rfid="NEWRFID",
+            is_active=False,  # New inactive user
+        )
 
-    # Test 11a: Ensure username updates successfully
-    def test_users_test_managers_UserManager_update_user_username_success(self):
-        updated_username = "updateduser"
-        self.user_manager.update_user(self.user1.id, username=updated_username)
+        self.assertIsInstance(inactive_user, User, "Inactive user should be allowed to have a duplicate email.")
 
-        updated_user = User.objects.using("users_db").get(id=self.user1.id)
-        self.assertEqual(updated_user.username, updated_username, "Username did not update correctly.")
+    # Test 10r_2: Ensure an inactive user can have a duplicate username
+    def test_UserManager_inactive_user_can_have_duplicate_username(self):
+        inactive_user, _  = self.user_manager.create_user(
+            email="newinactive@example.com",
+            username=self.user2.username,  # Duplicate username from existing inactive user
+            password=None,
+            first_name="Test",
+            last_name="User",
+            organization_id=self.organization1.id,
+            site_id=self.site1.id,
+            created_by_id=None,
+            badge_barcode="NEWBARCODE",
+            badge_rfid="NEWRFID",
+            is_active=False,  # New inactive user
+        )
 
-    # """
-    # Tests the delete_user() method in UserManager to ensure correct user deletion.
+        self.assertIsInstance(inactive_user, User, "Inactive user should be allowed to have a duplicate username.")
 
-    # Purpose:
-    #     - Confirms that a user can be deleted successfully.
-    #     - Ensures that the delete_user() method explicitly prevents deletion of superusers.
-    #     - Ensures proper error handling when deleting non-existent users.
+    # Test 10r_3: Ensure an inactive user can have a duplicate badge_barcode
+    def test_UserManager_inactive_user_can_have_duplicate_badge_barcode(self):
+        inactive_user, _  = self.user_manager.create_user(
+            email="newinactive@example.com",
+            username="newinactiveuser",
+            password=None,
+            first_name="Test",
+            last_name="User",
+            organization_id=self.organization1.id,
+            site_id=self.site1.id,
+            created_by_id=None,
+            badge_barcode=self.user2.badge_barcode,  # Duplicate badge_barcode from existing inactive user
+            badge_rfid="NEWRFID",
+            is_active=False,  # New inactive user
+        )
 
-    # Verification Steps:
-    #     1. **Delete a Regular User**:
-    #         - Calls `delete_user()` and confirms the user is removed.
-    #     2. **Confirm Superuser Deletion is Blocked**:
-    #         - Attempts to delete a superuser, which is hardcoded in `delete_user()` to raise a `ValueError`.
-    #         - This restriction ensures that superusers can only be deleted using `delete_superuser()`.
-    #     3. **Handle Non-Existent User Deletion**:
-    #         - Tries to delete a user that does not exist and verifies that a `ValueError` is raised.
+        self.assertIsInstance(inactive_user, User, "Inactive user should be allowed to have a duplicate badge_barcode.")
 
-    # Guarantees that `delete_user()` enforces proper constraints and handles errors correctly.
-    # """
+    # Test 10r_4: Ensure an inactive user can have a duplicate badge_rfid
+    def test_UserManager_inactive_user_can_have_duplicate_badge_rfid(self):
+        inactive_user, _  = self.user_manager.create_user(
+            email="newinactive@example.com",
+            username="newinactiveuser",
+            password=None,
+            first_name="Test",
+            last_name="User",
+            organization_id=self.organization1.id,
+            site_id=self.site1.id,
+            created_by_id=None,
+            badge_barcode="NEWBARCODE",
+            badge_rfid=self.user2.badge_rfid,  # Duplicate badge_rfid from existing inactive user
+            is_active=False,  # New inactive user
+        )
 
-    # def test_user_manager_delete_user(self):
-    #     print("\n--- DEBUG: Running test_user_manager_delete_user ---")
+        self.assertIsInstance(inactive_user, User, "Inactive user should be allowed to have a duplicate badge_rfid.")
 
-    #     # Case 1: Successfully delete a regular user
-    #     user = User.objects.db_manager("users_db").get(id=self.user1.id)
-    #     print(f"🔹 Before Deletion: User Found - ID: {user.id}, Email: {user.email}")
-
-    #     User.objects.db_manager("users_db").delete_user(self.user1.id)
-
-    #     # Confirm user is deleted
-    #     print("⏳ Checking if user still exists after deletion...")
-    #     with self.assertRaises(User.DoesNotExist):
-    #         deleted_user = User.objects.db_manager("users_db").get(id=self.user1.id)
-    #         print(f"❌ User still exists: {deleted_user.id}")  # Should NOT execute
-
-    #     print("✅ User successfully deleted (DoesNotExist Exception raised).")
-
-    #     # Case 2: Attempt to delete a superuser (should raise ValueError)
-    #     superuser = User.objects.db_manager("users_db").create_user(
-    #         email="superuser@example.com",
-    #         username="superadmin",
-    #         password="SecurePass123!",
-    #         is_superuser=True
-    #     )
-
-    #     print(f"🔹 Created Superuser: ID {superuser.id}, Email: {superuser.email}")
-
-    #     with self.assertRaises(ValueError):
-    #         print("🔴 Attempting to delete a superuser (should raise an error)")
-    #         User.objects.db_manager("users_db").delete_user(superuser.id)
-
-    #     # Case 3: Attempt to delete a non-existent user (should raise ValueError)
-    #     with self.assertRaises(ValueError):
-    #         print("🔴 Attempting to delete a non-existent user (should raise an error)")
-    #         User.objects.db_manager("users_db").delete_user(user_id=999999)
-
-    #     print("--- END DEBUG ---\n")
-
-    # """
-    # Tests the create_superuser() method in UserManager to ensure proper superuser creation.
-
-    # Expected Behavior:
-    #     - Superusers should always have `is_staff=True` and `is_superuser=True`.
-    #     - If `is_staff` or `is_superuser` are set to False, an error should be raised.
-    #     - Calls `create_user()` and ensures superuser constraints are applied.
-
-    # Test Cases:
-    #     1. Successfully create a superuser and verify attributes.
-    #     2. Attempt to create a superuser with `is_superuser=False` (should raise `ValueError`).
-    #     3. Attempt to create a superuser with `is_staff=False` (should raise `ValueError`).
-    # """
-    # def test_user_manager_create_superuser(self):
+    # Test 10s_1: Ensure an email is sent after user creation
+    def test_UserManager_create_user_sends_email(self):
     
+        self.user_manager.create_user(
+            email="emailtest@example.com",
+            username="emailtestuser",
+            password=None,
+            first_name="Test",
+            last_name="User",
+            organization_id=self.organization1.id,
+            site_id=self.site1.id,
+            created_by_id=None,
+            badge_barcode="BARCODEEMAILTEST",
+            badge_rfid="RFIDEMAILTEST",
+        )
 
-    #     print("\n--- DEBUG: Running test_user_manager_create_superuser ---")
+        self.assertEqual(len(mail.outbox), 1, "No email was sent after user creation.")
 
-    #     # Case 1: Successfully create a superuser
-    #     superuser = User.objects.db_manager("users_db").create_superuser(
-    #         email="admin@example.com",
-    #         username="adminuser",
-    #         password="SecurePass123!"
-    #     )
-
-    #     print(f"✅ Created Superuser ID: {superuser.id}")
-    #     print(f"User Email: {superuser.email} (Expected: admin@example.com)")
-    #     print(f"User Username: {superuser.username} (Expected: adminuser)")
-    #     print(f"User is_staff: {superuser.is_staff} (Expected: True)")
-    #     print(f"User is_superuser: {superuser.is_superuser} (Expected: True)")
-
-    #     # Assertions
-    #     self.assertEqual(superuser.email, "admin@example.com", "❌ Email does not match expected value.")
-    #     self.assertEqual(superuser.username, "adminuser", "❌ Username does not match expected value.")
-    #     self.assertTrue(superuser.is_staff, "❌ Superuser should have is_staff=True.")
-    #     self.assertTrue(superuser.is_superuser, "❌ Superuser should have is_superuser=True.")
-
-    #     # Case 2: Attempt to create a superuser with is_superuser=False (should raise ValueError)
-    #     with self.assertRaises(ValueError):
-    #         print("🔴 Attempting to create a superuser with is_superuser=False (should raise an error)")
-    #         User.objects.db_manager("users_db").create_superuser(
-    #             email="invalid_admin@example.com",
-    #             username="invalidadmin",
-    #             password="SecurePass123!",
-    #             is_superuser=False
-    #         )
-
-    #     # Case 3: Attempt to create a superuser with is_staff=False (should raise ValueError)
-    #     with self.assertRaises(ValueError):
-    #         print("🔴 Attempting to create a superuser with is_staff=False (should raise an error)")
-    #         User.objects.db_manager("users_db").create_superuser(
-    #             email="invalid_staff@example.com",
-    #             username="invalidstaff",
-    #             password="SecurePass123!",
-    #             is_staff=False
-    #         )
-
-    #     print("--- END DEBUG ---\n")
-
-    # """
-    # Tests the update_superuser() method in UserManager to ensure superuser updates function correctly.
-
-    # Expected Behavior:
-    #     - Allows updating superuser attributes while enforcing required constraints.
-    #     - Ensures `is_staff` and `is_superuser` remain `True`.
-    #     - Normalizes email before saving.
-    #     - Ensures at least one login identifier remains set.
-    #     - Raises errors for invalid update attempts.
-
-    # Test Cases:
-    #     1. Successfully update a superuser's attributes.
-    #     2. Ensure email normalization when updating email.
-    #     3. Update foreign key fields (`organization_id`, `site_id`, `modified_by_id`) and confirm persistence.
-    #     4. Attempt to remove all login identifiers (should raise `ValueError`).
-    #     5. Attempt to update a non-superuser (should raise `ValueError`).
-    #     6. Attempt to update a non-existent superuser (should raise `ValueError`).
-    # """
-    # def test_user_manager_update_superuser(self):
+    # Test 10s_2: Ensure email is sent to the correct recipient
+    def test_UserManager_create_user_email_recipient_is_correct(self):
     
-    #     print("\n--- DEBUG: Running test_user_manager_update_superuser ---")
+        user, _  = self.user_manager.create_user(
+            email="emailtest@example.com",
+            username="emailtestuser",
+            password=None,
+            first_name="Test",
+            last_name="User",
+            organization_id=self.organization1.id,
+            site_id=self.site1.id,
+            created_by_id=None,
+            badge_barcode="BARCODEEMAILTEST",
+            badge_rfid="RFIDEMAILTEST",
+        )
 
-    #     # Case 1: Successfully update superuser attributes
-    #     superuser = User.objects.db_manager("users_db").create_superuser(
-    #         email="superadmin@example.com",
-    #         username="superadmin",
-    #         password="SecurePass123!"
-    #     )
+        sent_email = mail.outbox[0]
 
-    #     print(f"🔹 Before Update: Username: {superuser.username}")
+        self.assertEqual(sent_email.to, [user.email], "Email was not sent to the correct recipient.")
 
-    #     updated_superuser = User.objects.db_manager("users_db").update_superuser(
-    #         superuser.id, username="updatedsuperadmin"
-    #     )
-
-    #     print(f"✅ After Update: Username: {updated_superuser.username} (Expected: updatedsuperadmin)")
-    #     self.assertEqual(updated_superuser.username, "updatedsuperadmin", "❌ Username did not update correctly.")
-
-    #     # Case 2: Ensure email normalization when updating email
-    #     raw_email = "  UPDATEDSUPER@EXAMPLE.COM  "
-    #     expected_email = raw_email.strip().lower()
-
-    #     updated_superuser = User.objects.db_manager("users_db").update_superuser(
-    #         superuser.id, email=raw_email
-    #     )
-
-    #     print(f"✅ After Email Update: {updated_superuser.email} (Expected: {expected_email})")
-    #     self.assertEqual(updated_superuser.email, expected_email, "❌ Email was not normalized correctly.")
-
-    #     # Case 3: Update foreign key fields and verify
-    #     new_organization = Organization.objects.using("organizations_db").create(
-    #         name="New Super Organization",
-    #         type_id=2,
-    #         active=True,
-    #         created_by_id=None
-    #     )
-
-    #     new_site = Site.objects.using("sites_db").create(
-    #         name="New Super Site",
-    #         organization_id=new_organization.id,
-    #         site_type="Datacenter",
-    #         address="789 Super St",
-    #         active=True,
-    #         created_by_id=None
-    #     )
-
-    #     updated_superuser = User.objects.db_manager("users_db").update_superuser(
-    #         superuser.id,
-    #         organization_id=new_organization.id,
-    #         site_id=new_site.id,
-    #         modified_by_id=superuser.id
-    #     )
-
-    #     print(f"✅ After FK Update: Org ID: {updated_superuser.organization_id}, Site ID: {updated_superuser.site_id}")
-
-    #     self.assertEqual(updated_superuser.organization_id, new_organization.id, "❌ Organization ID did not update correctly.")
-    #     self.assertEqual(updated_superuser.site_id, new_site.id, "❌ Site ID did not update correctly.")
-
-    #     # Case 4: Attempt to remove all login identifiers (should raise ValueError)
-    #     with self.assertRaises(ValueError):
-    #         print("🔴 Attempting to remove all login identifiers (should raise an error)")
-    #         User.objects.db_manager("users_db").update_superuser(
-    #             superuser.id,
-    #             username=None,
-    #             badge_barcode=None,
-    #             badge_rfid=None
-    #         )
-
-    #     # Case 5: Attempt to update a non-superuser (should raise ValueError)
-    #     regular_user = User.objects.db_manager("users_db").create_user(
-    #         email="regular@example.com",
-    #         username="regularuser",
-    #         password="SecurePass123!"
-    #     )
-
-    #     with self.assertRaises(ValueError):
-    #         print("🔴 Attempting to update a non-superuser (should raise an error)")
-    #         User.objects.db_manager("users_db").update_superuser(regular_user.id, username="shouldfail")
-
-    #     # Case 6: Attempt to update a non-existent superuser (should raise ValueError)
-    #     with self.assertRaises(ValueError):
-    #         print("🔴 Attempting to update a non-existent superuser (should raise an error)")
-    #         User.objects.db_manager("users_db").update_superuser(user_id=999999, username="ghostsuper")
-
-    #     print("--- END DEBUG ---\n")
-
-    # """
-    # Tests the delete_superuser() method in UserManager to ensure proper superuser deletion.
-
-    # Expected Behavior:
-    #     - Successfully deletes a superuser when multiple superusers exist.
-    #     - Prevents deletion of the last remaining superuser.
-    #     - Raises an error if attempting to delete a non-existent superuser.
-
-    # Test Cases:
-    #     1. Successfully delete a superuser when more than one exists.
-    #     2. Attempt to delete the last remaining superuser (should raise `ValueError`).
-    #     3. Attempt to delete a non-existent superuser (should raise `ValueError`).
-    # """
-
-    # def test_user_manager_delete_superuser(self):
+    # Test 10s_3: Ensure email subject is correct
+    def test_UserManager_create_user_email_subject_is_correct(self):
     
+        self.user_manager.create_user(
+            email="emailtest@example.com",
+            username="emailtestuser",
+            password=None,
+            first_name="Test",
+            last_name="User",
+            organization_id=self.organization1.id,
+            site_id=self.site1.id,
+            created_by_id=None,
+            badge_barcode="BARCODEEMAILTEST",
+            badge_rfid="RFIDEMAILTEST",
+        )
 
-    #     print("\n--- DEBUG: Running test_user_manager_delete_superuser ---")
+        sent_email = mail.outbox[0]
 
-    #     # Case 1: Successfully delete a superuser when multiple exist
-    #     superuser1 = User.objects.db_manager("users_db").create_superuser(
-    #         email="admin1@example.com",
-    #         username="admin1",
-    #         password="SecurePass123!"
-    #     )
+        self.assertEqual(sent_email.subject, "Your Account Credentials", "Email subject does not match.")
 
-    #     superuser2 = User.objects.db_manager("users_db").create_superuser(
-    #         email="admin2@example.com",
-    #         username="admin2",
-    #         password="SecurePass123!"
-    #     )
-
-    #     print(f"🔹 Created Superusers: {superuser1.id} (admin1), {superuser2.id} (admin2)")
-
-    #     # Delete one superuser
-    #     User.objects.db_manager("users_db").delete_superuser(superuser1.id)
-
-    #     # Verify deletion
-    #     with self.assertRaises(User.DoesNotExist):
-    #         print("⏳ Checking if superuser1 still exists after deletion...")
-    #         User.objects.db_manager("users_db").get(id=superuser1.id)
-
-    #     print("✅ Superuser1 successfully deleted.")
-
-    #     # Case 2: Attempt to delete the last remaining superuser (should raise ValueError)
-    #     with self.assertRaises(ValueError):
-    #         print("🔴 Attempting to delete the last remaining superuser (should raise an error)")
-    #         User.objects.db_manager("users_db").delete_superuser(superuser2.id)
-
-    #     # Case 3: Attempt to delete a non-existent superuser (should raise ValueError)
-    #     with self.assertRaises(ValueError):
-    #         print("🔴 Attempting to delete a non-existent superuser (should raise an error)")
-    #         User.objects.db_manager("users_db").delete_superuser(user_id=999999)
-
-    #     print("--- END DEBUG ---\n")
-
-    # """
-    # Tests the get_by_natural_key() method in UserManager to ensure correct user retrieval.
-
-    # Expected Behavior:
-    #     - Successfully retrieves an active user by email, username, badge barcode, or badge RFID.
-    #     - Ensures that only active users are retrieved.
-    #     - Raises a `User.DoesNotExist` error if no matching active user is found.
-
-    # Test Cases:
-    #     1. Retrieve a user by email.
-    #     2. Retrieve a user by username.
-    #     3. Retrieve a user by badge barcode.
-    #     4. Retrieve a user by badge RFID.
-    #     5. Attempt to retrieve an inactive user (should raise `User.DoesNotExist`).
-    #     6. Attempt to retrieve a non-existent user (should raise `User.DoesNotExist`).
-    # """
-
-    # def test_user_manager_get_by_natural_key(self):
+    # Test 10s_4_1: Ensure email contains the correct email address
+    def test_UserManager_create_user_email_contains_email(self):
     
-
-    #     print("\n--- DEBUG: Running test_user_manager_get_by_natural_key ---")
-
-    #     # Create a user with multiple identifiers
-    #     user = User.objects.db_manager("users_db").create_user(
-    #         email="searchuser@example.com",
-    #         username="searchuser",
-    #         password="SecurePass123!",
-    #         badge_barcode="123456",
-    #         badge_rfid="ABCDEF",
-    #         is_active=True
-    #     )
-
-    #     print(f"🔹 Created User ID: {user.id}, Email: {user.email}, Username: {user.username}")
-
-    #     # Case 1: Retrieve user by email
-    #     retrieved_user = User.objects.db_manager("users_db").get_by_natural_key("searchuser@example.com")
-    #     print(f"✅ Retrieved by Email: {retrieved_user.email} (Expected: {user.email})")
-    #     self.assertEqual(retrieved_user.id, user.id, "❌ Failed to retrieve user by email.")
-
-    #     # Case 2: Retrieve user by username
-    #     retrieved_user = User.objects.db_manager("users_db").get_by_natural_key("searchuser")
-    #     print(f"✅ Retrieved by Username: {retrieved_user.username} (Expected: {user.username})")
-    #     self.assertEqual(retrieved_user.id, user.id, "❌ Failed to retrieve user by username.")
-
-    #     # Case 3: Retrieve user by badge barcode
-    #     retrieved_user = User.objects.db_manager("users_db").get_by_natural_key("123456")
-    #     print(f"✅ Retrieved by Badge Barcode: {retrieved_user.badge_barcode} (Expected: {user.badge_barcode})")
-    #     self.assertEqual(retrieved_user.id, user.id, "❌ Failed to retrieve user by badge barcode.")
-
-    #     # Case 4: Retrieve user by badge RFID
-    #     retrieved_user = User.objects.db_manager("users_db").get_by_natural_key("ABCDEF")
-    #     print(f"✅ Retrieved by Badge RFID: {retrieved_user.badge_rfid} (Expected: {user.badge_rfid})")
-    #     self.assertEqual(retrieved_user.id, user.id, "❌ Failed to retrieve user by badge RFID.")
-
-    #     # Case 5: Attempt to retrieve an inactive user (should raise User.DoesNotExist)
-    #     inactive_user = User.objects.db_manager("users_db").create_user(
-    #         email="inactiveuser@example.com",
-    #         username="inactiveuser",
-    #         password="SecurePass123!",
-    #         is_active=False
-    #     )
-
-    #     with self.assertRaises(User.DoesNotExist):
-    #         print("🔴 Attempting to retrieve an inactive user (should raise an error)")
-    #         User.objects.db_manager("users_db").get_by_natural_key("inactiveuser@example.com")
-
-    #     # Case 6: Attempt to retrieve a non-existent user (should raise User.DoesNotExist)
-    #     with self.assertRaises(User.DoesNotExist):
-    #         print("🔴 Attempting to retrieve a non-existent user (should raise an error)")
-    #         User.objects.db_manager("users_db").get_by_natural_key("doesnotexist@example.com")
-
-    #     print("--- END DEBUG ---\n")
-
-    # """
-    # Tests UserManager query methods that filter users by specific fields.
-
-    # Purpose:
-    #     - Ensures that users can be retrieved based on unique and searchable attributes.
-    #     - Confirms that queries return the correct users while excluding incorrect ones.
-    #     - Verifies that case-insensitive searches work where applicable.
-    #     - Ensures that queries return an empty result when no matching users exist.
-
-    # Verification Steps:
-    #     1. **Retrieve a User by Email**:
-    #         - Ensures `by_email()` returns the correct user.
-    #         - Ensures `by_email()` returns no results when no match exists.
-    #     2. **Retrieve a User by Username**:
-    #         - Ensures `by_username()` returns the correct user.
-    #         - Ensures `by_username()` returns no results when no match exists.
-    #     3. **Retrieve a User by Badge Barcode**:
-    #         - Ensures `by_badge_barcode()` returns the correct user.
-    #         - Ensures `by_badge_barcode()` returns no results when no match exists.
-    #     4. **Retrieve a User by Badge RFID**:
-    #         - Ensures `by_badge_rfid()` returns the correct user.
-    #         - Ensures `by_badge_rfid()` returns no results when no match exists.
-    #     5. **Retrieve a User by First Name**:
-    #         - Ensures `by_first_name()` returns users with a matching first name (case-insensitive).
-    #         - Ensures `by_first_name()` returns no results when no match exists.
-    #     6. **Retrieve a User by Last Name**:
-    #         - Ensures `by_last_name()` returns users with a matching last name (case-insensitive).
-    #         - Ensures `by_last_name()` returns no results when no match exists.
-    #     7. **Retrieve a User by Full Name**:
-    #         - Ensures `by_full_name()` returns users with a matching first and last name (case-insensitive).
-    #         - Ensures `by_full_name()` returns no results when no match exists.
-
-    # Guarantees that filtering by specific fields works as expected and excludes non-matching users.
-    # """
-
-    # def test_user_manager_filter_by_specific_fields(self):
-
-    #     print("\n--- DEBUG: Running test_user_manager_filter_by_specific_fields ---")
-
-    #     # ✅ Case 1: Retrieve user by email (Success)
-    #     user = User.objects.db_manager("users_db").by_email("user1@example.com").first()
-    #     print(f"✅ Retrieved by Email: {user.email} (Expected: user1@example.com)")
-    #     self.assertEqual(user, self.user1, "❌ Failed to retrieve user by email.")
-
-    #     # ❌ Case 1b: Retrieve user by email (Failure)
-    #     user = User.objects.db_manager("users_db").by_email("nonexistent@example.com").first()
-    #     print(f"❌ No User Retrieved by Email (Expected: None)")
-    #     self.assertIsNone(user, "❌ Unexpected user found when searching for nonexistent email.")
-
-    #     # ✅ Case 2: Retrieve user by username (Success)
-    #     user = User.objects.db_manager("users_db").by_username("userone").first()
-    #     print(f"✅ Retrieved by Username: {user.username} (Expected: userone)")
-    #     self.assertEqual(user, self.user1, "❌ Failed to retrieve user by username.")
-
-    #     # ❌ Case 2b: Retrieve user by username (Failure)
-    #     user = User.objects.db_manager("users_db").by_username("fakeuser").first()
-    #     print(f"❌ No User Retrieved by Username (Expected: None)")
-    #     self.assertIsNone(user, "❌ Unexpected user found when searching for nonexistent username.")
-
-    #     # ✅ Case 3: Retrieve user by badge barcode (Success)
-    #     self.user3.badge_barcode = "123456"
-    #     self.user3.save(using="users_db")
-    #     user = User.objects.db_manager("users_db").by_badge_barcode("123456").first()
-    #     print(f"✅ Retrieved by Badge Barcode: {user.badge_barcode} (Expected: 123456)")
-    #     self.assertEqual(user, self.user3, "❌ Failed to retrieve user by badge barcode.")
-
-    #     # ❌ Case 3b: Retrieve user by badge barcode (Failure)
-    #     user = User.objects.db_manager("users_db").by_badge_barcode("999999").first()
-    #     print(f"❌ No User Retrieved by Badge Barcode (Expected: None)")
-    #     self.assertIsNone(user, "❌ Unexpected user found when searching for nonexistent barcode.")
-
-    #     # ✅ Case 4: Retrieve user by badge RFID (Success)
-    #     self.user4.badge_rfid = "ABCDEF"
-    #     self.user4.save(using="users_db")
-    #     user = User.objects.db_manager("users_db").by_badge_rfid("ABCDEF").first()
-    #     print(f"✅ Retrieved by Badge RFID: {user.badge_rfid} (Expected: ABCDEF)")
-    #     self.assertEqual(user, self.user4, "❌ Failed to retrieve user by badge RFID.")
-
-    #     # ❌ Case 4b: Retrieve user by badge RFID (Failure)
-    #     user = User.objects.db_manager("users_db").by_badge_rfid("ZZZZZZ").first()
-    #     print(f"❌ No User Retrieved by Badge RFID (Expected: None)")
-    #     self.assertIsNone(user, "❌ Unexpected user found when searching for nonexistent RFID.")
-
-    #     # ✅ Case 5: Retrieve user by first name (Success)
-    #     user = User.objects.db_manager("users_db").by_first_name("alice").first()
-    #     print(f"✅ Retrieved by First Name: {user.first_name} (Expected: Alice)")
-    #     self.assertEqual(user, self.user1, "❌ Failed to retrieve user by first name.")
-
-    #     # ❌ Case 5b: Retrieve user by first name (Failure)
-    #     user = User.objects.db_manager("users_db").by_first_name("noname").first()
-    #     print(f"❌ No User Retrieved by First Name (Expected: None)")
-    #     self.assertIsNone(user, "❌ Unexpected user found when searching for nonexistent first name.")
-
-    #     # ✅ Case 6: Retrieve user by last name (Success)
-    #     user = User.objects.db_manager("users_db").by_last_name("smith").first()
-    #     print(f"✅ Retrieved by Last Name: {user.last_name} (Expected: Smith)")
-    #     self.assertEqual(user, self.user1, "❌ Failed to retrieve user by last name.")
-
-    #     # ❌ Case 6b: Retrieve user by last name (Failure)
-    #     user = User.objects.db_manager("users_db").by_last_name("nomatch").first()
-    #     print(f"❌ No User Retrieved by Last Name (Expected: None)")
-    #     self.assertIsNone(user, "❌ Unexpected user found when searching for nonexistent last name.")
-
-    #     # ✅ Case 7: Retrieve user by full name (Success)
-    #     user = User.objects.db_manager("users_db").by_full_name("alice", "smith").first()
-    #     print(f"✅ Retrieved by Full Name: {user.first_name} {user.last_name} (Expected: Alice Smith)")
-    #     self.assertEqual(user, self.user1, "❌ Failed to retrieve user by full name.")
-
-    #     # ❌ Case 7b: Retrieve user by full name (Failure)
-    #     user = User.objects.db_manager("users_db").by_full_name("John", "Doe").first()
-    #     print(f"❌ No User Retrieved by Full Name (Expected: None)")
-    #     self.assertIsNone(user, "❌ Unexpected user found when searching for nonexistent full name.")
-
-    #     print("--- END DEBUG ---\n")
-
-    # """
-    # Tests UserManager query methods that filter users by status.
-
-    # Purpose:
-    #     - Ensures that users can be retrieved based on their active/inactive status.
-    #     - Confirms that staff users can be correctly identified.
-    #     - Ensures queries exclude non-matching users.
-    #     - Verifies that queries return the correct number of users, not just an empty result.
-
-    # Verification Steps:
-    #     1. **Retrieve Active Users**:
-    #         - Ensures `active()` returns only users marked as active.
-    #         - Ensures `active()` returns the correct count of active users.
-    #         - Ensures `active()` excludes inactive users.
-    #     2. **Retrieve Inactive Users**:
-    #         - Ensures `inactive()` returns only users marked as inactive.
-    #         - Ensures `inactive()` returns the correct count of inactive users.
-    #         - Ensures `inactive()` excludes active users.
-    #     3. **Retrieve Staff Users**:
-    #         - Ensures `staff()` returns only users marked as staff.
-    #         - Ensures `staff()` returns the correct count of staff users.
-    #         - Ensures `staff()` excludes non-staff users.
-
-    # Guarantees that filtering by status correctly identifies users based on their active and staff attributes.
-    # """
-
-    # def test_user_manager_filter_by_status(self):
-
-    #     print("\n--- DEBUG: Running test_user_manager_filter_by_status ---")
-
-    #     # ✅ Case 1: Retrieve active users (Success)
-    #     active_users = User.objects.db_manager("users_db").active()
-    #     print(f"✅ Active Users Count: {active_users.count()} (Expected: 3)")
-    #     self.assertIn(self.user1, active_users, "❌ Active users query should include user1.")
-    #     self.assertIn(self.user3, active_users, "❌ Active users query should include user3.")
-    #     self.assertIn(self.user4, active_users, "❌ Active users query should include user4.")
-
-    #     # ✅ Case 1b: Retrieve active users (Failure - some users still active)
-    #     self.user1.is_active = False  # Make inactive
-    #     self.user2.is_active = True  # Keep active
-    #     self.user3.is_active = False  # Make inactive
-    #     self.user4.is_active = False  # Make inactive
-
-    #     self.user1.save(using="users_db")
-    #     self.user2.save(using="users_db")
-    #     self.user3.save(using="users_db")
-    #     self.user4.save(using="users_db")
-
-    #     active_users = User.objects.db_manager("users_db").active()
-    #     print(f"✅ Active Users Count: {active_users.count()} (Expected: 1)")
-    #     self.assertEqual(active_users.count(), 1, "❌ Active query should return only user2 as active.")
-    #     self.assertIn(self.user2, active_users, "❌ Active users query should include user2.")
-
-    #     # ✅ Case 2: Retrieve inactive users (Success)
-    #     self.user1.is_active = True  # Make active
-    #     self.user2.is_active = False  # Ensure user2 is inactive
-    #     self.user3.is_active = True  # Make active
-    #     self.user4.is_active = True  # Make active
-
-    #     self.user1.save(using="users_db")
-    #     self.user2.save(using="users_db")
-    #     self.user3.save(using="users_db")
-    #     self.user4.save(using="users_db")
-
-    #     inactive_users = User.objects.db_manager("users_db").inactive()
-    #     print(f"✅ Inactive Users Count: {inactive_users.count()} (Expected: 1)")
-    #     self.assertEqual(inactive_users.count(), 1, "❌ Inactive query should return only user2 as inactive.")
-    #     self.assertIn(self.user2, inactive_users, "❌ Inactive users query should include user2.")
-
-    #     # ✅ Case 2b: Retrieve inactive users (Failure - some users still inactive)
-    #     self.user1.is_active = True  # Make active
-    #     self.user2.is_active = True  # Make active (was inactive)
-    #     self.user3.is_active = False  # Ensure at least one inactive user remains
-    #     self.user4.is_active = True  # Make active
-
-    #     self.user1.save(using="users_db")
-    #     self.user2.save(using="users_db")
-    #     self.user3.save(using="users_db")
-    #     self.user4.save(using="users_db")
-
-    #     inactive_users = User.objects.db_manager("users_db").inactive()
-    #     print(f"✅ Inactive Users Count: {inactive_users.count()} (Expected: 1)")
-    #     self.assertEqual(inactive_users.count(), 1, "❌ Inactive query should return only user3 as inactive.")
-    #     self.assertIn(self.user3, inactive_users, "❌ Inactive users query should include user3.")
-
-    #     # ✅ Case 3: Retrieve staff users (Success)
-    #     staff_users = User.objects.db_manager("users_db").staff()
-    #     print(f"✅ Staff Users Count: {staff_users.count()} (Expected: 1)")
-    #     self.assertIn(self.user3, staff_users, "❌ Staff query should include user3.")
-
-    #     # ✅ Case 3b: Retrieve staff users (Failure - some users still staff)
-    #     self.user1.is_staff = True  # Make staff
-    #     self.user3.is_staff = False  # Remove staff status
-
-    #     self.user1.save(using="users_db")
-    #     self.user3.save(using="users_db")
-
-    #     staff_users = User.objects.db_manager("users_db").staff()
-    #     print(f"✅ Staff Users Count: {staff_users.count()} (Expected: 1)")
-    #     self.assertEqual(staff_users.count(), 1, "❌ Staff query should return only user1 as staff.")
-    #     self.assertIn(self.user1, staff_users, "❌ Staff users query should include user1.")
-
-
-    #     print("--- END DEBUG ---\n")
-
-    # """
-    # Tests UserManager query methods that filter users based on relationships (foreign keys).
-
-    # Purpose:
-    #     - Ensures that users can be retrieved based on their assigned site or organization.
-    #     - Confirms that filtering works correctly for active, inactive, and staff users at specific sites and organizations.
-    #     - Verifies that queries return the correct count of users, not just an empty result.
-
-    # Verification Steps:
-    #     1. **Retrieve Users by Site**:
-    #         - Ensures `from_site()` returns only users assigned to a specific site.
-    #         - Ensures `from_site()` excludes users from other sites.
-    #     2. **Retrieve Users by Organization**:
-    #         - Ensures `from_organization()` returns only users assigned to a specific organization.
-    #         - Ensures `from_organization()` excludes users from other organizations.
-    #     3. **Retrieve Active Users by Site**:
-    #         - Ensures `active_from_site()` returns only active users assigned to a site.
-    #         - Ensures `active_from_site()` excludes inactive users.
-    #         - Ensures `active_from_site()` returns the correct number of active users.
-    #     4. **Retrieve Inactive Users by Site**:
-    #         - Ensures `inactive_from_site()` returns only inactive users assigned to a site.
-    #         - Ensures `inactive_from_site()` excludes active users.
-    #     5. **Retrieve Active Users by Organization**:
-    #         - Ensures `active_from_organization()` returns only active users assigned to an organization.
-    #         - Ensures `active_from_organization()` excludes inactive users.
-    #     6. **Retrieve Inactive Users by Organization**:
-    #         - Ensures `inactive_from_organization()` returns only inactive users assigned to an organization.
-    #         - Ensures `inactive_from_organization()` excludes active users.
-    #     7. **Retrieve Staff Users by Site**:
-    #         - Ensures `staff_from_site()` returns only staff users assigned to a site.
-    #         - Ensures `staff_from_site()` excludes non-staff users.
-    #     8. **Retrieve Staff Users by Organization**:
-    #         - Ensures `staff_from_organization()` returns only staff users assigned to an organization.
-    #         - Ensures `staff_from_organization()` excludes non-staff users.
-
-    # Guarantees that relationship-based filtering correctly identifies users based on their assigned site and organization.
-    # """
-
-    # def test_user_manager_filter_by_relationships(self):
-
-    #     print("\n--- DEBUG: Running test_user_manager_filter_by_relationships ---")
-
-    #     # ✅ Case 1: Retrieve users from a specific site (Success)
-    #     users_from_site1 = User.objects.db_manager("users_db").from_site(self.site1.id)
-    #     print(f"✅ Users from Site 1 Count: {users_from_site1.count()} (Expected: 2)")
-    #     self.assertEqual(users_from_site1.count(), 2, "❌ Users from site query should return exactly 2 users.")
-    #     self.assertIn(self.user1, users_from_site1, "❌ Users from site query should include user1.")
-    #     self.assertIn(self.user2, users_from_site1, "❌ Users from site query should include user2.")
-
-    #     # ✅ Case 2: Retrieve users from a specific organization (Success)
-    #     users_from_org1 = User.objects.db_manager("users_db").from_organization(self.organization1.id)
-    #     print(f"✅ Users from Organization 1 Count: {users_from_org1.count()} (Expected: 2)")
-    #     self.assertEqual(users_from_org1.count(), 2, "❌ Users from organization query should return exactly 2 users.")
-    #     self.assertIn(self.user1, users_from_org1, "❌ Users from organization query should include user1.")
-    #     self.assertIn(self.user2, users_from_org1, "❌ Users from organization query should include user2.")
-
-    #     # ✅ Case 3: Retrieve active users from a specific site
-    #     active_users_from_site1 = User.objects.db_manager("users_db").active_from_site(self.site1.id)
-    #     print(f"✅ Active Users from Site 1 Count: {active_users_from_site1.count()} (Expected: 1)")
-    #     self.assertEqual(active_users_from_site1.count(), 1, "❌ Active users from site query should return exactly 1 user.")
-    #     self.assertIn(self.user1, active_users_from_site1, "❌ Active users from site query should include user1.")
-
-    #     # ✅ Case 4: Retrieve inactive users from a specific organization
-    #     inactive_users_from_org1 = User.objects.db_manager("users_db").inactive_from_organization(self.organization1.id)
-    #     print(f"✅ Inactive Users from Organization 1 Count: {inactive_users_from_org1.count()} (Expected: 1)")
-    #     self.assertEqual(inactive_users_from_org1.count(), 1, "❌ Inactive users from organization query should return exactly 1 user.")
-    #     self.assertIn(self.user2, inactive_users_from_org1, "❌ Inactive users from organization query should include user2.")
-
-    #     # ✅ Case 5: Retrieve staff users from a specific site
-    #     staff_users_from_site2 = User.objects.db_manager("users_db").staff_from_site(self.site2.id)
-    #     print(f"✅ Staff Users from Site 2 Count: {staff_users_from_site2.count()} (Expected: 1)")
-    #     self.assertEqual(staff_users_from_site2.count(), 1, "❌ Staff users from site query should return exactly 1 user.")
-    #     self.assertIn(self.user3, staff_users_from_site2, "❌ Staff users from site query should include user3.")
-
-    #     # ✅ Case 6: Retrieve staff users from a specific organization
-    #     staff_users_from_org2 = User.objects.db_manager("users_db").staff_from_organization(self.organization2.id)
-    #     print(f"✅ Staff Users from Organization 2 Count: {staff_users_from_org2.count()} (Expected: 1)")
-    #     self.assertEqual(staff_users_from_org2.count(), 1, "❌ Staff users from organization query should return exactly 1 user.")
-    #     self.assertIn(self.user3, staff_users_from_org2, "❌ Staff users from organization query should include user3.")
-
-    #     print("--- END DEBUG ---\n")
-
-    # """
-    # Tests UserManager query methods that filter users based on their MFA preferences.
-
-    # Purpose:
-    #     - Ensures that users can be retrieved based on their selected MFA preference.
-    #     - Matches expected results to predefined test data from `setUp()`.
-    #     - Verifies that queries return the correct count of users, not just an empty result.
-
-    # Verification Steps:
-    #     1. **Retrieve Users Without MFA**:
-    #         - Ensures `without_mfa()` returns only users with MFA set to 'none'.
-    #         - Ensures `without_mfa()` excludes users with any MFA enabled.
-    #     2. **Retrieve Users Using Google Authenticator MFA**:
-    #         - Ensures `with_google_authenticator()` returns only users with Google Authenticator enabled.
-    #         - Ensures `with_google_authenticator()` excludes users with other MFA methods.
-    #     3. **Retrieve Users Using SMS MFA**:
-    #         - Ensures `with_sms()` returns only users with SMS MFA enabled.
-    #         - Ensures `with_sms()` excludes users with other MFA methods.
-    #     4. **Retrieve Users Using Email MFA**:
-    #         - Ensures `with_email_mfa()` returns only users with Email MFA enabled.
-    #         - Ensures `with_email_mfa()` excludes users with other MFA methods.
-    #     5. **Ensure Non-Existent MFA Types Return No Results**:
-    #         - Confirms that searching for an MFA type not present in `setUp()` returns an empty QuerySet.
-
-    # Guarantees that MFA-based filtering correctly identifies users based on their selected MFA preference.
-    # """
-
-
-    # def test_user_manager_filter_by_mfa_preferences(self):
-
-    #     print("\n--- DEBUG: Running test_user_manager_filter_by_mfa_preferences ---")
-
-    #     # ✅ Case 1: Retrieve users without MFA (Success)
-    #     users_without_mfa = User.objects.db_manager("users_db").without_mfa()
-    #     print(f"✅ Users Without MFA Count: {users_without_mfa.count()} (Expected: 1)")
-    #     self.assertEqual(users_without_mfa.count(), 1, "❌ Users without MFA query should return exactly 1 user.")
-    #     self.assertIn(self.user1, users_without_mfa, "❌ Users without MFA query should include user1.")
-
-    #     # ✅ Case 2: Retrieve users using Google Authenticator MFA (Success)
-    #     users_with_google_authenticator = User.objects.db_manager("users_db").with_google_authenticator()
-    #     print(f"✅ Users with Google Authenticator Count: {users_with_google_authenticator.count()} (Expected: 1)")
-    #     self.assertEqual(users_with_google_authenticator.count(), 1, "❌ Users with Google Authenticator query should return exactly 1 user.")
-    #     self.assertIn(self.user2, users_with_google_authenticator, "❌ Users with Google Authenticator query should include user2.")
-
-    #     # ✅ Case 3: Retrieve users using SMS MFA (Success)
-    #     users_with_sms = User.objects.db_manager("users_db").with_sms()
-    #     print(f"✅ Users with SMS MFA Count: {users_with_sms.count()} (Expected: 1)")
-    #     self.assertEqual(users_with_sms.count(), 1, "❌ Users with SMS MFA query should return exactly 1 user.")
-    #     self.assertIn(self.user3, users_with_sms, "❌ Users with SMS MFA query should include user3.")
-
-    #     # ✅ Case 4: Retrieve users using Email MFA (Success)
-    #     users_with_email_mfa = User.objects.db_manager("users_db").with_email_mfa()
-    #     print(f"✅ Users with Email MFA Count: {users_with_email_mfa.count()} (Expected: 1)")
-    #     self.assertEqual(users_with_email_mfa.count(), 1, "❌ Users with Email MFA query should return exactly 1 user.")
-    #     self.assertIn(self.user4, users_with_email_mfa, "❌ Users with Email MFA query should include user4.")
-
-    #     # ❌ Case 5: Ensure no users are returned for an MFA type that doesn't exist in setUp()
-    #     users_with_facial_recognition = User.objects.db_manager("users_db").filter(mfa_preference="facial_recognition")
-    #     print(f"❌ No Users with Facial Recognition MFA Found (Expected: 0)")
-    #     self.assertEqual(users_with_facial_recognition.count(), 0, "❌ Users with Facial Recognition query should return no results.")
-
-    #     print("--- END DEBUG ---\n")
-
-    # """
-    # Tests UserManager query methods that filter users based on creation and modification data.
-
-    # Purpose:
-    #     - Ensures that users can be retrieved based on who created or modified them.
-    #     - Confirms that filtering works correctly for users created within a specific time frame.
-    #     - Verifies that queries return the correct count of users, not just an empty result.
-
-    # Verification Steps:
-    #     1. **Retrieve Users Created by a Specific User**:
-    #         - Ensures `created_by()` returns only users created by the given user.
-    #         - Ensures `created_by()` excludes users created by others.
-    #     2. **Retrieve Users Modified by a Specific User**:
-    #         - Ensures `modified_by()` returns only users modified by the given user.
-    #         - Ensures `modified_by()` excludes users modified by others.
-    #     3. **Retrieve Users Recently Joined**:
-    #         - Ensures `recently_joined()` returns only users created within the last X days.
-    #         - Ensures `recently_joined()` excludes users older than X days.
-    #     4. **Retrieve Users Recently Joined from a Specific Site**:
-    #         - Ensures `recently_joined_from_site()` returns only users from a given site within the last X days.
-    #         - Ensures `recently_joined_from_site()` excludes users outside of X days or the wrong site.
-    #     5. **Retrieve Users Recently Joined from a Specific Organization**:
-    #         - Ensures `recently_joined_from_organization()` returns only users from a given organization within the last X days.
-    #         - Ensures `recently_joined_from_organization()` excludes users outside of X days or the wrong organization.
-
-    # Guarantees that filtering by creation and modification data correctly identifies users based on relationships and timestamps.
-    # """
-
-    # def test_user_manager_filter_by_creation_and_modification(self):
-
-    #     print("\n--- DEBUG: Running test_user_manager_filter_by_creation_and_modification ---")
-
-    #     # ✅ Case 1: Retrieve users created by a specific user (Success)
-    #     users_created_by_user1 = User.objects.db_manager("users_db").created_by(self.user1.id)
-    #     print(f"✅ Users Created by User1 Count: {users_created_by_user1.count()} (Expected: 1)")
-    #     self.assertEqual(users_created_by_user1.count(), 1, "❌ Created by query should return exactly 1 user.")
-    #     self.assertIn(self.user4, users_created_by_user1, "❌ Created by query should include user4.")
-
-    #     # ❌ Case 1b: Retrieve users created by a user with no created users (Failure)
-    #     users_created_by_user3 = User.objects.db_manager("users_db").created_by(self.user3.id)
-    #     print(f"❌ No Users Created by User3 Found (Expected: 0)")
-    #     self.assertEqual(users_created_by_user3.count(), 0, "❌ Created by query should return no results when the user has not created any users.")
-
-    #     # ✅ Case 2: Retrieve users modified by a specific user (Success)
-    #     users_modified_by_user1 = User.objects.db_manager("users_db").modified_by(self.user1.id)
-    #     print(f"✅ Users Modified by User1 Count: {users_modified_by_user1.count()} (Expected: 2)")
-    #     self.assertEqual(users_modified_by_user1.count(), 2, "❌ Modified by query should return exactly 2 users.")
-    #     self.assertIn(self.user2, users_modified_by_user1, "❌ Modified by query should include user2.")
-    #     self.assertIn(self.user3, users_modified_by_user1, "❌ Modified by query should include user3.")
-
-    #     # ✅ Case 3: Retrieve recently joined users (Success)
-    #     recently_joined_users = User.objects.db_manager("users_db").recently_joined(days=30)
-    #     print(f"✅ Recently Joined Users Count: {recently_joined_users.count()} (Expected: 3)")
-    #     self.assertEqual(recently_joined_users.count(), 3, "❌ Recently joined query should return exactly 3 users.")
-    #     self.assertIn(self.user1, recently_joined_users, "❌ Recently joined query should include user1.")
-    #     self.assertIn(self.user3, recently_joined_users, "❌ Recently joined query should include user3.")
-    #     self.assertIn(self.user4, recently_joined_users, "❌ Recently joined query should include user4.")
-
-    #     # ❌ Case 3b: Retrieve recently joined users with a short time frame (Failure)
-    #     short_term_recently_joined = User.objects.db_manager("users_db").recently_joined(days=2)
-    #     print(f"✅ Recently Joined Users in Last 2 Days Count: {short_term_recently_joined.count()} (Expected: 1)")
-    #     self.assertEqual(short_term_recently_joined.count(), 1, "❌ Recently joined query should return exactly 1 user.")
-    #     self.assertIn(self.user4, short_term_recently_joined, "❌ Recently joined query should include user4.")
-
-    #     # ✅ Case 4: Retrieve recently joined users from a specific site (Success)
-    #     recently_joined_from_site1 = User.objects.db_manager("users_db").recently_joined_from_site(self.site1.id, days=30)
-    #     print(f"✅ Recently Joined from Site 1 Count: {recently_joined_from_site1.count()} (Expected: 1)")
-    #     self.assertEqual(recently_joined_from_site1.count(), 1, "❌ Recently joined from site query should return exactly 1 user.")
-    #     self.assertIn(self.user1, recently_joined_from_site1, "❌ Recently joined from site query should include user1.")
-
-    #     # ✅ Case 5: Retrieve recently joined users from a specific organization (Success)
-    #     recently_joined_from_org2 = User.objects.db_manager("users_db").recently_joined_from_organization(self.organization2.id, days=30)
-    #     print(f"✅ Recently Joined from Organization 2 Count: {recently_joined_from_org2.count()} (Expected: 2)")
-    #     self.assertEqual(recently_joined_from_org2.count(), 2, "❌ Recently joined from organization query should return exactly 2 users.")
-    #     self.assertIn(self.user3, recently_joined_from_org2, "❌ Recently joined from organization query should include user3.")
-    #     self.assertIn(self.user4, recently_joined_from_org2, "❌ Recently joined from organization query should include user4.")
-
-
-    #     print("--- END DEBUG ---\n")
-
-
-
-
-
-
-
-
+        user, _  = self.user_manager.create_user(
+            email="emailtest@example.com",
+            username="emailtestuser",
+            password=None,
+            first_name="Test",
+            last_name="User",
+            organization_id=self.organization1.id,
+            site_id=self.site1.id,
+            created_by_id=None,
+            badge_barcode="BARCODEEMAILTEST",
+            badge_rfid="RFIDEMAILTEST",
+        )
+
+        sent_email = mail.outbox[0]
+
+        self.assertIn(f"Email: {user.email}", sent_email.body, "Email missing in email body.")
+
+    # Test 10s_4_2: Ensure email contains the correct username
+    def test_UserManager_create_user_email_contains_username(self):
+    
+        user, _  = self.user_manager.create_user(
+            email="emailtest@example.com",
+            username="emailtestuser",
+            password=None,
+            first_name="Test",
+            last_name="User",
+            organization_id=self.organization1.id,
+            site_id=self.site1.id,
+            created_by_id=None,
+            badge_barcode="BARCODEEMAILTEST",
+            badge_rfid="RFIDEMAILTEST",
+        )
+
+        sent_email = mail.outbox[0]
+
+        self.assertIn(f"Username: {user.username}", sent_email.body, "Username missing in email body.")
+
+    # Test 10s_4_3: Ensure email contains the correct badge barcode
+    def test_UserManager_create_user_email_contains_badge_barcode(self):
+    
+        user, _  = self.user_manager.create_user(
+            email="emailtest@example.com",
+            username="emailtestuser",
+            password=None,
+            first_name="Test",
+            last_name="User",
+            organization_id=self.organization1.id,
+            site_id=self.site1.id,
+            created_by_id=None,
+            badge_barcode="BARCODEEMAILTEST",
+            badge_rfid="RFIDEMAILTEST",
+        )
+
+        sent_email = mail.outbox[0]
+
+        self.assertIn(f"Badge Barcode: {user.badge_barcode}", sent_email.body, "Badge Barcode missing in email body.")
+
+    # Test 10s_4_4: Ensure email contains the correct badge RFID
+    def test_UserManager_create_user_email_contains_badge_rfid(self):
+    
+        user, _  = self.user_manager.create_user(
+            email="emailtest@example.com",
+            username="emailtestuser",
+            password=None,
+            first_name="Test",
+            last_name="User",
+            organization_id=self.organization1.id,
+            site_id=self.site1.id,
+            created_by_id=None,
+            badge_barcode="BARCODEEMAILTEST",
+            badge_rfid="RFIDEMAILTEST",
+        )
+
+        sent_email = mail.outbox[0]
+
+        self.assertIn(f"Badge RFID: {user.badge_rfid}", sent_email.body, "Badge RFID missing in email body.")
+
+    # Test 10s_4_5: Ensure the email contains the correct temporary password
+    def test_UserManager_create_user_email_contains_temporary_password(self):
+
+        user, _  = self.user_manager.create_user(
+            email="emailtest@example.com",
+            username="emailtestuser",
+            password=None,
+            first_name="Test",
+            last_name="User",
+            organization_id=self.organization1.id,
+            site_id=self.site1.id,
+            created_by_id=None,
+            badge_barcode="BARCODEEMAILTEST",
+            badge_rfid="RFIDEMAILTEST",
+        )
+
+        sent_email = mail.outbox[0]
+
+        # Extract the actual password from the email body, since we do not want to have a non hashed password outside of the create_user method
+        email_lines = sent_email.body.split("\n")
+        plaintext_password = None
+        for line in email_lines:
+            if "Temporary Password:" in line:
+                plaintext_password = line.replace("Temporary Password:", "").strip()
+                break
+
+        self.assertIn(f"Temporary Password: {plaintext_password}", sent_email.body, "Temporary Password missing in email body.")
+
+    #Test 10t_1: Ensure create_user does not raise an error when email fails
+    @patch("django.core.mail.send_mail", side_effect=smtplib.SMTPException("Simulated email failure"))
+    def test_UserManager_create_user_handles_email_failure_gracefully(self, mock_send_mail):
+    
+        try:
+            user, email_sent = self.user_manager.create_user(
+                email="failedemail@example.com",
+                username="emailfailtest",
+                password=None,
+                first_name="Test",
+                last_name="User",
+                organization_id=self.organization1.id,
+                site_id=self.site1.id,
+                created_by_id=None,
+                badge_barcode="BARCODEEMAILFAIL",
+                badge_rfid="RFIDEMAILFAIL",
+            )
+        except Exception as e:
+            self.fail(f"create_user() raised an exception when email failed: {e}")
+
+    # Test 10t_2: Ensure create_user still creates a user even when email fails
+    @patch("django.core.mail.send_mail", side_effect=smtplib.SMTPException("Simulated email failure"))
+    def test_UserManager_create_user_creates_user_even_when_email_fails(self, mock_send_mail):
+    
+        user, email_sent = self.user_manager.create_user(
+            email="failedemail@example.com",
+            username="emailfailtest",
+            password=None,
+            first_name="Test",
+            last_name="User",
+            organization_id=self.organization1.id,
+            site_id=self.site1.id,
+            created_by_id=None,
+            badge_barcode="BARCODEEMAILFAIL",
+            badge_rfid="RFIDEMAILFAIL",
+        )
+
+
+        self.assertIsInstance(user, User, "User was not created when email failed.")
+    
+    @patch("users.managers.send_mail", side_effect=smtplib.SMTPException("Simulated email failure"))
+    #Test 10t_3: Ensure email_sent is False when email fails
+    def test_UserManager_create_user_email_sent_flag_is_false_on_failure(self,mock_send_mail):
+
+        user, email_sent = self.user_manager.create_user(
+            email="failedemail@example.com",
+            username="emailfailtest",
+            password=None,
+            first_name="Test",
+            last_name="User",
+            organization_id=self.organization1.id,
+            site_id=self.site1.id,
+            created_by_id=None,
+            badge_barcode="BARCODEEMAILFAIL",
+            badge_rfid="RFIDEMAILFAIL",
+        )
+
+        self.assertFalse(email_sent, "email_sent should be False when email sending fails.")
+
+    # Test 10u: Ensure ValueError is raised if blank password is provided
+    def test_UserManager_create_user_raises_error_on_blank_password(self):
+
+        with self.assertRaises(ValueError) as context:
+            self.user_manager.create_user(
+                email="blankpassword@example.com",
+                username="blankpassuser",
+                password="",  # Explicitly passing blank
+                first_name="Test",
+                last_name="User",
+                organization_id=self.organization1.id,
+                site_id=self.site1.id,
+                created_by_id=None,
+                badge_barcode="BARCODEBLANK",
+                badge_rfid="RFIDBLANK",
+            )
+
+        self.assertEqual(str(context.exception), "A valid password must be set and cannot be blank.")

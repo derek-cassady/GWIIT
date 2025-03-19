@@ -632,35 +632,51 @@ class UserModelTests(TestCase):
             self.assertIn("Generated password does not meet complexity requirements", str(context.exception))
 
     """
-    Tests the create_user() method in UserManager to ensure correct user creation and error handling.
+    Comprehensive test coverage for the UserManager create_user() method and its supporting logic.
 
     Purpose:
-        - Ensures that users are created successfully with all required fields.
-        - Validates that passwords are securely generated and hashed.
-        - Confirms that email normalization occurs before saving.
-        - Enforces constraints on required fields.
-        - Ensures duplicate emails cannot be registered.
+        - Validate correct user creation and error handling under various conditions.
+        - Ensure password generation, normalization, validation, and secure storage function as expected.
+        - Verify duplicate protection, email delivery, and failure handling.
 
-    Expected Behavior:
-        - The user is created with a unique email, username, and assigned organization/site.
-        - The email is properly normalized (lowercased & trimmed).
-        - A password is auto-generated, securely hashed, and never stored in plain text.
-        - Attempting to create a user without an email should raise a `ValueError`.
-        - Attempting to create a user without a login identifier (username, badge) should raise a `ValueError`.
-        - Attempting to create a user with a duplicate email should raise a `ValueError`.
+    Test Coverage Includes:
 
-    Test Cases:
-        1. **Create a User with Valid Data**  
-            - Generates a unique email and ensures proper normalization.
-            - Confirms a password is automatically generated and securely hashed.
-        2. **Negative Test Case: Missing Email**  
-            - Attempting to create a user without an email should raise a `ValueError`.
-        3. **Negative Test Case: Missing Login Identifier**  
-            - Attempting to create a user without a username, badge barcode, or badge RFID should raise a `ValueError`.
-        4. **Negative Test Case: Duplicate Email**  
-            - Attempting to create a second user with the same email should raise a `ValueError`.
+    Standalone Tests (Direct create_user Behavior & Constraints)
+        - Successful user creation with all required fields populated.
+        - Automatic email normalization (trimming whitespace and lowercasing).
+        - Ensuring password is properly hashed and secure.
+        - Validation that users are active by default unless explicitly set inactive.
+        - Proper handling of is_active=False when provided.
+        - Raises ValueError if email is missing or blank.
+        - Raises ValueError if login identifiers (username, badge_barcode, badge_rfid) are missing.
+        - Prevents active duplicate creation of:
+            - Email
+            - Username
+            - Badge Barcode
+            - Badge RFID
+        - Validates support for creating users with **all unique identifiers** present.
+        - Raises ValueError when a blank password is passed (security enforcement).
 
-    Guarantees that create_user() correctly handles required fields, email formatting, password security, and error handling.
+    Grouped Functional Test Blocks
+        1. Password Complexity & Generation Tests
+            - Validates all complexity requirements (uppercase, lowercase, digits, special characters).
+            - Ensures minimum length.
+    
+        2. Inactive User Duplicate Handling
+            - Confirms inactive users can reuse unique identifiers of other inactive users without conflict.
+
+        3. Email Delivery Tests
+            - Verifies email is sent correctly, with the correct recipient, subject, and content (login credentials).
+
+        4. Email Failure Handling Tests
+            - Ensures that email delivery failures do not break user creation.
+            - Confirms email failure properly sets `email_sent = False`.
+
+    Expectations:
+        - The create_user() method strictly enforces all required fields, uniqueness, and password security.
+        - The system allows duplicate inactive records where expected but blocks duplicates on active users.
+        - Emails are reliably sent upon success and safely handled when failures occur.
+        - Passwords are securely generated, validated, and hashed before storage.
     """
 
     # Test 10a: Ensure a user can be created successfully
@@ -715,33 +731,65 @@ class UserModelTests(TestCase):
 
         self.assertTrue(user.password.startswith("pbkdf2_"), "Password should be hashed.")
     
-    # Test 10d: Ensure generated password contains at least one uppercase letter
+    """
+    Tests the password complexity requirements enforced during create_user() 
+        by validating the behavior of the generate_secure_password() method.
+
+    Purpose:
+        - Ensures generated passwords meet all defined security complexity standards.
+        - Verifies inclusion of all required character types.
+        - Confirms the password length complies with the minimum requirement.
+
+    Expected Behavior:
+        - Each generated password contains at least one uppercase letter (A-Z).
+        - Each generated password contains at least one lowercase letter (a-z).
+        - Each generated password contains at least one numeric digit (0-9).
+        - Each generated password includes at least one special character from the allowed set.
+        - Generated passwords are a minimum of 16 characters in length.
+
+    Test Cases:
+        1. **Uppercase Requirement**  
+            - Validates that the password includes at least one uppercase letter.
+        2. **Lowercase Requirement**  
+            - Validates that the password includes at least one lowercase letter.
+        3. **Digit Requirement**  
+            - Validates that the password includes at least one numeric digit.
+        4. **Special Character Requirement**  
+            - Validates that the password includes at least one special character from the approved list.
+        5. **Minimum Length Requirement**  
+            - Validates that the password is at least 16 characters long.
+
+    Guarantees that passwords generated for user accounts meet all complexity
+        requirements, supporting system security and compliance.
+    """
+    
+    # Test 10d_1: Ensure generated password contains at least one uppercase letter
     def test_UserManager_generate_secure_password_contains_uppercase(self):
         password = self.user_manager.generate_secure_password()
         self.assertTrue(any(c.isupper() for c in password), "Password must contain at least one uppercase letter.")
 
-    # Test 10e: Ensure generated password contains at least one lowercase letter
+    # Test 10d_2: Ensure generated password contains at least one lowercase letter
     def test_UserManager_generate_secure_password_contains_lowercase(self):
         password = self.user_manager.generate_secure_password()
         self.assertTrue(any(c.islower() for c in password), "Password must contain at least one lowercase letter.")
 
-    # Test 10f: Ensure generated password contains at least one digit
+    # Test 10d_3: Ensure generated password contains at least one digit
     def test_UserManager_generate_secure_password_contains_digit(self):
         password = self.user_manager.generate_secure_password()
         self.assertTrue(any(c.isdigit() for c in password), "Password must contain at least one digit.")
 
-    # Test 10g: Ensure generated password contains at least one special character
+    # Test 10d_4: Ensure generated password contains at least one special character
     def test_UserManager_generate_secure_password_contains_special_character(self):
-        special_characters = "@#$%^&+="
+        special_characters = self.user_manager.SPECIAL_CHARACTERS
         password = self.user_manager.generate_secure_password()
         self.assertTrue(any(c in special_characters for c in password), "Password must contain at least one special character.")
 
-    # Test 10h: Ensure generated password meets minimum length requirement
+    # Test 10d_5: Ensure generated password meets minimum length requirement
     def test_UserManager_generate_secure_password_meets_length_requirement(self):
         password = self.user_manager.generate_secure_password()
-        self.assertGreaterEqual(len(password), 12, "Password must be at least 12 characters long.")
-    
-    # Test 10i: Ensure newly created users are active by default
+        self.assertGreaterEqual(len(password), 16, "Password must be at least 16 characters long.")
+
+    # Test 10e: Ensure newly created users are active by default
     def test_UserManager_create_user_defaults_is_active_to_true(self):
         user, _  = self.user_manager.create_user(
             email="defaultactive@example.com",
@@ -756,7 +804,7 @@ class UserModelTests(TestCase):
 
         self.assertTrue(user.is_active, "New users should be active by default.")
 
-    # Test 10j: Ensure is_active=False when explicitly set
+    # Test 10f: Ensure is_active=False when explicitly set
     def test_UserManager_create_user_explicitly_sets_is_active_false(self):
         user, _  = self.user_manager.create_user(
             email="inactiveuser@example.com",
@@ -772,7 +820,7 @@ class UserModelTests(TestCase):
 
         self.assertFalse(user.is_active, "User should remain inactive when explicitly set to False.")
     
-    # Test 10k: Ensure missing email raises ValueError
+    # Test 10g: Ensure missing email raises ValueError
     def test_users_test_managers_UserManager_create_user_missing_email_fails(self):
         with self.assertRaises(ValueError, msg="Expected ValueError when creating a user without an email."):
             self.user_manager.create_user(
@@ -785,7 +833,7 @@ class UserModelTests(TestCase):
                 site_id=self.site1.id,
             )
     
-    # Test 10l: Ensure missing login identifier raises ValueError
+    # Test 10h: Ensure missing login identifier raises ValueError
     def test_users_test_managers_UserManager_create_user_missing_login_identifier_fails(self):
         with self.assertRaises(ValueError, msg="Expected ValueError when creating a user without a login identifier."):
             self.user_manager.create_user(
@@ -800,7 +848,7 @@ class UserModelTests(TestCase):
                 site_id=self.site1.id,
             )
             
-    # Test 10m: Ensure duplicate username raises ValueError
+    # Test 10i: Ensure duplicate username raises ValueError
     def test_users_test_managers_UserManager_create_user_duplicate_username_fails(self):
         with self.assertRaises(ValueError, msg="Expected ValueError when creating a user with a duplicate username."):
             self.user_manager.create_user(
@@ -813,7 +861,7 @@ class UserModelTests(TestCase):
                 site_id=self.site1.id,
             )
 
-    # Test 10n: Ensure duplicate badge_barcode raises ValueError
+    # Test 10j: Ensure duplicate badge_barcode raises ValueError
     def test_users_test_managers_UserManager_create_user_duplicate_badge_barcode_fails(self):
         with self.assertRaises(ValueError, msg="Expected ValueError when creating a user with a duplicate badge barcode."):
             self.user_manager.create_user(
@@ -827,7 +875,7 @@ class UserModelTests(TestCase):
                 site_id=self.site1.id,
             )
 
-    # Test 10o: Ensure duplicate badge_rfid raises ValueError
+    # Test 10k: Ensure duplicate badge_rfid raises ValueError
     def test_users_test_managers_UserManager_create_user_duplicate_badge_rfid_fails(self):
         with self.assertRaises(ValueError, msg="Expected ValueError when creating a user with a duplicate badge RFID."):
             self.user_manager.create_user(
@@ -841,7 +889,8 @@ class UserModelTests(TestCase):
                 site_id=self.site1.id,
             )
 
-    # Test 10p: Ensure duplicate email raises ValueError
+    # Test 10l: Ensure duplicate email raises ValueError
+    # This test checks duplicate emails *only* against active users
     def test_users_test_managers_UserManager_create_user_duplicate_email_fails(self):
         with self.assertRaises(ValueError, msg="Expected ValueError when creating a user with a duplicate email."):
             self.user_manager.create_user(
@@ -854,7 +903,7 @@ class UserModelTests(TestCase):
                 site_id=self.site1.id,
             )
 
-    # Test 10q: Ensure a user can be created with all unique identifiers
+    # Test 10m: Ensure a user can be created with all unique identifiers
     def test_UserManager_create_user_with_all_unique_identifiers(self):
         user, _  = self.user_manager.create_user(
             email="multiiduser@example.com",
@@ -875,7 +924,37 @@ class UserModelTests(TestCase):
 
         self.assertIsInstance(user, User, "User creation failed when using all unique identifiers.")
 
-    # Test 10r_1: Ensure an inactive user can have a duplicate email
+    """
+    Tests the create_user() method behavior when creating inactive users 
+        with duplicate identifiers.
+
+    Purpose:
+        - Verifies that the system allows inactive users to share the same 
+          unique identifiers (email, username, badge_barcode, badge_rfid) 
+          as other inactive users.
+        - Ensures that uniqueness constraints only apply to active users.
+
+    Expected Behavior:
+        - The system permits creation of inactive users even if their email,
+          username, badge_barcode, or badge_rfid duplicates another inactive user.
+        - Duplicate identifiers among inactive users should not raise a ValueError.
+        - Each inactive user is properly saved and returned as a valid User instance.
+
+    Test Cases:
+        1. **Duplicate Email Allowed for Inactive Users**
+            - Ensures inactive users can share the same email address.
+        2. **Duplicate Username Allowed for Inactive Users**
+            - Ensures inactive users can share the same username.
+        3. **Duplicate Badge Barcode Allowed for Inactive Users**
+            - Ensures inactive users can share the same badge barcode.
+        4. **Duplicate Badge RFID Allowed for Inactive Users**
+            - Ensures inactive users can share the same badge RFID.
+
+    Guarantees the create_user() method correctly bypasses active-user uniqueness 
+        onstraints when creating inactive users with duplicate identifiers.
+    """
+
+    # Test 10n_1: Ensure an inactive user can have a duplicate email
     def test_UserManager_inactive_user_can_have_duplicate_email(self):
         inactive_user, _  = self.user_manager.create_user(
             email=self.user2.email,  # Duplicate email from existing inactive user
@@ -893,7 +972,7 @@ class UserModelTests(TestCase):
 
         self.assertIsInstance(inactive_user, User, "Inactive user should be allowed to have a duplicate email.")
 
-    # Test 10r_2: Ensure an inactive user can have a duplicate username
+    # Test 10n_2: Ensure an inactive user can have a duplicate username
     def test_UserManager_inactive_user_can_have_duplicate_username(self):
         inactive_user, _  = self.user_manager.create_user(
             email="newinactive@example.com",
@@ -911,7 +990,7 @@ class UserModelTests(TestCase):
 
         self.assertIsInstance(inactive_user, User, "Inactive user should be allowed to have a duplicate username.")
 
-    # Test 10r_3: Ensure an inactive user can have a duplicate badge_barcode
+    # Test 10n_3: Ensure an inactive user can have a duplicate badge_barcode
     def test_UserManager_inactive_user_can_have_duplicate_badge_barcode(self):
         inactive_user, _  = self.user_manager.create_user(
             email="newinactive@example.com",
@@ -929,7 +1008,7 @@ class UserModelTests(TestCase):
 
         self.assertIsInstance(inactive_user, User, "Inactive user should be allowed to have a duplicate badge_barcode.")
 
-    # Test 10r_4: Ensure an inactive user can have a duplicate badge_rfid
+    # Test 10n_4: Ensure an inactive user can have a duplicate badge_rfid
     def test_UserManager_inactive_user_can_have_duplicate_badge_rfid(self):
         inactive_user, _  = self.user_manager.create_user(
             email="newinactive@example.com",
@@ -947,7 +1026,46 @@ class UserModelTests(TestCase):
 
         self.assertIsInstance(inactive_user, User, "Inactive user should be allowed to have a duplicate badge_rfid.")
 
-    # Test 10s_1: Ensure an email is sent after user creation
+    """
+    Tests the create_user() method's email delivery functionality and 
+        the accuracy of email content.
+
+    Purpose:
+        - Ensures that an email is sent after successful user creation.
+        - Verifies that the email is sent to the correct recipient.
+        - Confirms the email subject is correct.
+        - Validates that the email body contains all required user credentials
+          and login information.
+
+    Expected Behavior:
+        - A single email is sent and captured in Django's test mail outbox.
+        - The recipient's email address matches the created user's email.
+        - The subject line is "Your Account Credentials".
+        - The body contains the user’s email, username, badge barcode, badge RFID,
+          and the temporary password generated during creation.
+        - The temporary password is properly extracted and present in the email.
+
+    Test Cases:
+        1. **Email is Sent**
+            - Verifies that exactly one email is sent after user creation.
+        2. **Correct Email Recipient**
+            - Ensures the email is sent to the user’s registered email address.
+        3. **Correct Subject Line**
+            - Checks that the email subject is set as expected.
+        4. **Email Body Content Verification**
+            - Confirms the body contains:
+                - The user's email address.
+                - The user's username.
+                - The user's badge barcode.
+                - The user's badge RFID.
+                - The temporary password extracted from the email content.
+
+    Guarantees the create_user() method reliably handles email notifications, 
+        preserves user credential accuracy, and provides all necessary login information 
+        for the user in the email body.
+    """
+
+    # Test 10o_1: Ensure an email is sent after user creation
     def test_UserManager_create_user_sends_email(self):
     
         self.user_manager.create_user(
@@ -965,7 +1083,7 @@ class UserModelTests(TestCase):
 
         self.assertEqual(len(mail.outbox), 1, "No email was sent after user creation.")
 
-    # Test 10s_2: Ensure email is sent to the correct recipient
+    # Test 10o_2: Ensure email is sent to the correct recipient
     def test_UserManager_create_user_email_recipient_is_correct(self):
     
         user, _  = self.user_manager.create_user(
@@ -985,7 +1103,7 @@ class UserModelTests(TestCase):
 
         self.assertEqual(sent_email.to, [user.email], "Email was not sent to the correct recipient.")
 
-    # Test 10s_3: Ensure email subject is correct
+    # Test 10o_3: Ensure email subject is correct
     def test_UserManager_create_user_email_subject_is_correct(self):
     
         self.user_manager.create_user(
@@ -1005,7 +1123,7 @@ class UserModelTests(TestCase):
 
         self.assertEqual(sent_email.subject, "Your Account Credentials", "Email subject does not match.")
 
-    # Test 10s_4_1: Ensure email contains the correct email address
+    # Test 10o_4_1: Ensure email contains the correct email address
     def test_UserManager_create_user_email_contains_email(self):
     
         user, _  = self.user_manager.create_user(
@@ -1025,7 +1143,7 @@ class UserModelTests(TestCase):
 
         self.assertIn(f"Email: {user.email}", sent_email.body, "Email missing in email body.")
 
-    # Test 10s_4_2: Ensure email contains the correct username
+    # Test 10o_4_2: Ensure email contains the correct username
     def test_UserManager_create_user_email_contains_username(self):
     
         user, _  = self.user_manager.create_user(
@@ -1045,7 +1163,7 @@ class UserModelTests(TestCase):
 
         self.assertIn(f"Username: {user.username}", sent_email.body, "Username missing in email body.")
 
-    # Test 10s_4_3: Ensure email contains the correct badge barcode
+    # Test 10o_4_3: Ensure email contains the correct badge barcode
     def test_UserManager_create_user_email_contains_badge_barcode(self):
     
         user, _  = self.user_manager.create_user(
@@ -1065,7 +1183,7 @@ class UserModelTests(TestCase):
 
         self.assertIn(f"Badge Barcode: {user.badge_barcode}", sent_email.body, "Badge Barcode missing in email body.")
 
-    # Test 10s_4_4: Ensure email contains the correct badge RFID
+    # Test 10o_4_4: Ensure email contains the correct badge RFID
     def test_UserManager_create_user_email_contains_badge_rfid(self):
     
         user, _  = self.user_manager.create_user(
@@ -1085,7 +1203,7 @@ class UserModelTests(TestCase):
 
         self.assertIn(f"Badge RFID: {user.badge_rfid}", sent_email.body, "Badge RFID missing in email body.")
 
-    # Test 10s_4_5: Ensure the email contains the correct temporary password
+    # Test 10o_4_5: Ensure the email contains the correct temporary password
     def test_UserManager_create_user_email_contains_temporary_password(self):
 
         user, _  = self.user_manager.create_user(
@@ -1113,7 +1231,35 @@ class UserModelTests(TestCase):
 
         self.assertIn(f"Temporary Password: {plaintext_password}", sent_email.body, "Temporary Password missing in email body.")
 
-    #Test 10t_1: Ensure create_user does not raise an error when email fails
+    """
+    Tests the create_user() method's behavior when email delivery fails.
+
+    Purpose:
+        - Ensures that the user creation process is robust and does not fail
+          if sending the email fails.
+        - Verifies that user records are still created even when email delivery
+          is unsuccessful.
+        - Confirms that the email_sent flag is correctly set to False when
+          email sending fails.
+
+    Expected Behavior:
+        - No exceptions are raised if email delivery fails due to an SMTP error.
+        - User creation succeeds and returns a valid User instance.
+        - The email_sent flag is False, reflecting that email delivery did not succeed.
+
+    Test Cases:
+        1. **Graceful Handling of Email Failure**
+            - Simulates an SMTP failure and ensures no unhandled exceptions occur.
+        2. **User Still Created on Email Failure**
+            - Confirms that the user is fully created and persisted even when the email fails.
+        3. **Email Sent Flag is False**
+            - Validates that the email_sent flag accurately reflects the failure state.
+
+    Guarantees that the create_user() method is resilient against email delivery failures
+        and maintains system stability and user data integrity.
+    """
+
+    #Test 10p_1: Ensure create_user does not raise an error when email fails
     @patch("django.core.mail.send_mail", side_effect=smtplib.SMTPException("Simulated email failure"))
     def test_UserManager_create_user_handles_email_failure_gracefully(self, mock_send_mail):
     
@@ -1133,7 +1279,7 @@ class UserModelTests(TestCase):
         except Exception as e:
             self.fail(f"create_user() raised an exception when email failed: {e}")
 
-    # Test 10t_2: Ensure create_user still creates a user even when email fails
+    # Test 10p_2: Ensure create_user still creates a user even when email fails
     @patch("django.core.mail.send_mail", side_effect=smtplib.SMTPException("Simulated email failure"))
     def test_UserManager_create_user_creates_user_even_when_email_fails(self, mock_send_mail):
     
@@ -1154,7 +1300,7 @@ class UserModelTests(TestCase):
         self.assertIsInstance(user, User, "User was not created when email failed.")
     
     @patch("users.managers.send_mail", side_effect=smtplib.SMTPException("Simulated email failure"))
-    #Test 10t_3: Ensure email_sent is False when email fails
+    # Test 10p_3: Ensure email_sent is False when email fails
     def test_UserManager_create_user_email_sent_flag_is_false_on_failure(self,mock_send_mail):
 
         user, email_sent = self.user_manager.create_user(
@@ -1172,7 +1318,7 @@ class UserModelTests(TestCase):
 
         self.assertFalse(email_sent, "email_sent should be False when email sending fails.")
 
-    # Test 10u: Ensure ValueError is raised if blank password is provided
+    # Test 10q: Ensure ValueError is raised if blank password is provided
     def test_UserManager_create_user_raises_error_on_blank_password(self):
 
         with self.assertRaises(ValueError) as context:

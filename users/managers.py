@@ -62,6 +62,24 @@ Usage Example:
 class UserManager(models.Manager):
 
     """
+    Defines the allowed special characters used during secure password generation.
+
+    Purpose:
+        - Enforces a consistent set of special characters across the UserManager class.
+        - Ensures both the password generator and associated tests use the same character set.
+        - Supports validation of generated passwords against complexity requirements.
+
+    Usage:
+        - Referenced within the generate_secure_password() method to guarantee inclusion of at least one special character.
+        - Accessed by tests to verify that generated passwords include approved special characters only.
+
+    Note:
+        - Centralizing the special characters here prevents duplication and reduces the risk of inconsistency between password generation and validation.
+    """
+
+    SPECIAL_CHARACTERS = ["@", "#", "$", "%", "^", "&", "*", "(", ")", "-", "_", "+", "="]
+
+    """
     Manually normalizes and validates email addresses.
         - Converts all characters to lowercase.
         - Strips leading and trailing whitespace.
@@ -130,7 +148,6 @@ class UserManager(models.Manager):
         if length < 16:
             raise ValueError("Password length must be at least 16 characters to comply with security policies.")
 
-        SPECIAL_CHARACTERS = ["@", "#", "$", "%", "^", "&", "*", "(", ")", "-", "_", "+", "="]
         system_random = secrets.SystemRandom()
 
         try:
@@ -138,12 +155,12 @@ class UserManager(models.Manager):
             uppercase = secrets.choice(string.ascii_uppercase)
             lowercase = secrets.choice(string.ascii_lowercase)
             digit = secrets.choice(string.digits)
-            special = secrets.choice(SPECIAL_CHARACTERS)
+            special = secrets.choice(self.SPECIAL_CHARACTERS)
         except IndexError as e:
             raise ValueError(f"Character set missing required characters: {e}")
 
         # All allowed characters: limit special chars to the approved list
-        allowed_chars = string.ascii_letters + string.digits + ''.join(SPECIAL_CHARACTERS)
+        allowed_chars = string.ascii_letters + string.digits + ''.join(self.SPECIAL_CHARACTERS)
 
         # Remaining characters
         remaining_length = length - 4
@@ -159,7 +176,7 @@ class UserManager(models.Manager):
         if not (any(c.isupper() for c in password) and
                 any(c.islower() for c in password) and
                 any(c.isdigit() for c in password) and
-                any(c in SPECIAL_CHARACTERS for c in password)):
+                any(c in self.SPECIAL_CHARACTERS for c in password)):
             raise ValueError("Generated password does not meet complexity requirements.")
 
         return password

@@ -102,17 +102,30 @@ class UserManager(models.Manager):
         return email
 
     """
-    Generates a secure random password meeting the following complexity requirements:
+    Generates a secure random password that meets strict complexity and length requirements:
+
+    Complexity Requirements:
         - At least one uppercase letter (A-Z)
         - At least one lowercase letter (a-z)
         - At least one digit (0-9)
-        - At least one special character (!@#$%^&* etc.)
-        - Ensures password length is at least 4 to satisfy these constraints
-        - Uses `secrets.choice()` for better cryptographic randomness
+        - At least one special character from the approved set: @ # $ % ^ & * ( ) - _ + =
+    
+    Length Enforcement:
+        - Minimum total length of 16 characters (default)
+    
+    Cryptographic Security:
+        - Uses `secrets.SystemRandom()` and `secrets.choice()` for cryptographically secure randomness
+    
+    Defensive Validations:
+        - Raises ValueError if:
+            • Length is less than 16
+            • Any required character category is missing after generation
+            • Character set selection fails (empty set)
 
-    Args:
-        length (int): Desired password length (default: 16)
+    Returns:
+        str: The generated secure password
     """
+    
     def generate_secure_password(self, length=16):
         if length < 16:
             raise ValueError("Password length must be at least 16 characters to comply with security policies.")
